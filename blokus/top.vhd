@@ -49,7 +49,7 @@ architecture Behavioral of top is
 		stOurMove, stOurMove2,
 		stWriteDown, stWriteDown2);
 		
-	signal stCur	:	mainState := stOurMove;
+	signal stCur	:	mainState := stIdle;
 	signal stNext	:	mainState;
 		
 	signal sig_write:std_logic := '0';
@@ -200,11 +200,11 @@ begin
 			sig_our_move <= '0';
 			cmd_command <= (others => '0');
 			if sig_move_generator_done = '1' then
-				if sig_our_move_serial = '1' then
+--				if sig_our_move_serial = '1' then
 					stNext <= stWriteDown;
-				else
-					stNext <= stOurMove2;
-				end if;
+--				else
+--					stNext <= stOurMove2;
+--				end if;
 				--stNext <= stWriteDown;
 			else
 				stNext <= stOurMove2;
