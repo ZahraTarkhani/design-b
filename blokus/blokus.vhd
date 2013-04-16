@@ -32,8 +32,8 @@ use work.types.all;
 --use UNISIM.VComponents.all;
 
 entity blokus is
-	Port(reset                   : in  std_logic;
-		  clk                     : in  std_logic;
+	Port(clk							: in std_logic;
+			reset: in std_logic;
 		  cmd_command             : in  std_logic_vector(15 downto 0);
 		  sig_write               : in  std_logic;
 		  sig_player              : in  std_logic;
@@ -111,5 +111,8 @@ begin
 			  
          best_move       => sig_best_move,
          done            => sig_move_generator_done);
+		
+			
+			
 end structural;
 

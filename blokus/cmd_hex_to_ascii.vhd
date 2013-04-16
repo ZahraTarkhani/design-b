@@ -31,6 +31,7 @@ use ieee.numeric_std.all;
 -- any Xilinx primitives in this code.
 --library UNISIM;
 --use UNISIM.VComponents.all;
+use work.types.all;
 
 entity cmd_hex_to_ascii is
 	Port(hex_command   : in  std_logic_vector(15 downto 0);

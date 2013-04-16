@@ -32,6 +32,9 @@ use ieee.numeric_std.all;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
+use work.types.all;
+
+
 entity cmd_ascii_to_hex is
 	Port(ascii_command : in  std_logic_vector(31 downto 0);
 		  hex_command   : out std_logic_vector(15 downto 0));

@@ -28,6 +28,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
+use work.types.all;
+
 -------------------------------------------------------------------------
 --
 --Title:	Main entity
@@ -59,6 +61,7 @@ entity DataCntrl is
 				--interact with move generator
 				NET_MOVE_IN : in std_logic_vector(31 downto 0);
 				NET_CMD_OUT : out std_logic_vector(31 downto 0);
+				NET_CMD_OUT_2 : out std_logic_vector(31 downto 0);
 				OUR_MOVE : out std_logic;
 				GEN_DONE : in std_logic
 				);
@@ -231,6 +234,7 @@ sig_move_array(2) <= NET_MOVE_IN(15 downto 8);
 sig_move_array(3) <= NET_MOVE_IN(7 downto 0);
 
 NET_CMD_OUT <= sig_code_array(1) & sig_code_array(2) & sig_code_array(3) & sig_code_array(4);
+NET_CMD_OUT_2 <= sig_code_array(5) & sig_code_array(6) & sig_code_array(7) & sig_code_array(8);
 -------------------------------------------------------------------------
 --
 --Title:		RS232RefComp map 
