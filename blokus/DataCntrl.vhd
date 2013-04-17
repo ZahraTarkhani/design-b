@@ -174,7 +174,7 @@ end component;
 	signal sig_test_rda : std_logic := '0';
 	signal sig_big_debug : std_logic := '0';
 
-	signal sig_fake_txd : std_logic;
+	--signal sig_fake_txd : std_logic;
 
 	type code_array is array(0 to 8) of std_logic_vector(7 downto 0);
 	signal sig_code_array : code_array;
