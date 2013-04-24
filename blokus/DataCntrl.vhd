@@ -59,6 +59,7 @@ entity DataCntrl is
 				CONT 		: in std_logic := '0';
 				
 				--interact with move generator
+				hex_debug : in std_logic_vector(15 downto 0);
 				NET_MOVE_IN : in std_logic_vector(31 downto 0);
 				NET_CMD_OUT : out std_logic_vector(31 downto 0);
 				NET_CMD_OUT_2 : out std_logic_vector(31 downto 0);
@@ -379,7 +380,7 @@ NET_CMD_OUT_2 <= sig_code_array(5) & sig_code_array(6) & sig_code_array(7) & sig
 		end if;
 		end process;
 
-	process(sig_cur_cmd)
+	process(sig_cur_cmd, sig_move_array)
 		begin
 			case sig_cur_cmd is
 			when sig_init_game =>
@@ -508,7 +509,11 @@ NET_CMD_OUT_2 <= sig_code_array(5) & sig_code_array(6) & sig_code_array(7) & sig
 --					if CONT = '1' then
 						if sig_write_more = '1' then 
 							if GEN_DONE = '1' then
+								if CONT = '1' then
 								stNext <= stSend;
+								else 
+						stNext <= stAction;
+					end if;
 							else
 								stNext <= stAction;
 							end if;
@@ -603,15 +608,15 @@ NET_CMD_OUT_2 <= sig_code_array(5) & sig_code_array(6) & sig_code_array(7) & sig
 			when "0011" => LEDS <= sig_state_debug;
 			when "0111" => LEDS <= conv_std_logic_vector(sig_code_index, 8);
 			when "0010" => LEDS <= dbInSig;
-			when "0100" => LEDS <= sig_test_leds;
-			when "0101" => LEDS <= conv_std_logic_vector(sig_move_index, 8);
+			when "0100" => LEDS <= hex_debug(15 downto 8);--sig_test_leds;
+			when "0101" => LEDS <= hex_debug(7 downto 0);--conv_std_logic_vector(sig_move_index, 8);
 			when "1000" => LEDS <= sig_game_state;
-			when "1001" => LEDS <= sig_code_array(0);
-			when "1010" => LEDS <= sig_code_array(1);
-			when "1100" => LEDS <= sig_code_array(2);
-			when "1101" => LEDS <= sig_code_array(3);
+			when "1001" => LEDS <= sig_move_array(0);
+			when "1010" => LEDS <= sig_move_array(1);
+			when "1100" => LEDS <= sig_move_array(2);
+			when "1101" => LEDS <= sig_move_array(3);
 			when "1110" => LEDS <= sig_code_array(4);
-
+			
 			when others => LEDS <= dbOutSig;
 		end case;
 	end process;	
