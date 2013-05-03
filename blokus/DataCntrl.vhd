@@ -60,7 +60,11 @@ entity DataCntrl is
 				
 				--interact with move generator
 				hex_debug : in std_logic_vector(15 downto 0);
+				blokus_state_debug : in std_logic_vector(7 downto 0);
 				NET_MOVE_IN : in std_logic_vector(31 downto 0);
+				NET_CUR_CMD : out std_logic_vector(2 downto 0);
+--				NET_OPP_TURN : out std_logic;
+				NET_SEND_DONE : out std_logic;
 				NET_CMD_OUT : out std_logic_vector(31 downto 0);
 				NET_CMD_OUT_2 : out std_logic_vector(31 downto 0);
 				OUR_MOVE : out std_logic;
@@ -193,6 +197,9 @@ end component;
 	signal sig_new_data_written : std_logic := '0';
 	signal sig_read_done : std_logic := '0';
 	signal sig_action_done : std_logic := '0';
+	signal sig_opp_turn : std_logic := '0';
+	signal sig_our_move : std_logic := '0';
+--	signal sig_send_done : std_logic := '0';
 
 --to change, state machine states
 	signal sig_cur_cmd : std_logic_vector(2 downto 0) := "000";
@@ -215,6 +222,7 @@ end component;
 	constant sig_three 	: std_logic_vector := "00110011"; --3
 	constant sig_four 	: std_logic_vector := "00110100"; --4
 	constant sig_nine 	: std_logic_vector := "00111001"; --9
+
 	
 ------------------------------------------------------------------------
 -- Module Implementation
@@ -227,7 +235,9 @@ begin
 --uart debug signals
 sig_uart_debug <= sig_test_rda & rdaSig & tbeSig & rdSig & wrSig & peSig & feSig & oeSig;
 
-sig_game_state <= sig_cur_cmd & "00" & sig_big_debug & sig_read_more & sig_write_more;
+sig_game_state <= sig_cur_cmd & sig_our_move & sig_opp_turn & sig_big_debug & sig_read_more & sig_write_more;
+
+OUR_MOVE <= sig_our_move;
 
 sig_move_array(0) <= NET_MOVE_IN(31 downto 24);
 sig_move_array(1) <= NET_MOVE_IN(23 downto 16);
@@ -236,6 +246,9 @@ sig_move_array(3) <= NET_MOVE_IN(7 downto 0);
 
 NET_CMD_OUT <= sig_code_array(1) & sig_code_array(2) & sig_code_array(3) & sig_code_array(4);
 NET_CMD_OUT_2 <= sig_code_array(5) & sig_code_array(6) & sig_code_array(7) & sig_code_array(8);
+--NET_SEND_DONE <= sig_action_done;
+--NET_OPP_TURN <= sig_opp_turn;
+NET_CUR_CMD <= sig_cur_cmd;
 -------------------------------------------------------------------------
 --
 --Title:		RS232RefComp map 
@@ -360,8 +373,8 @@ NET_CMD_OUT_2 <= sig_code_array(5) & sig_code_array(6) & sig_code_array(7) & sig
 					sig_code_array(8) <= "00000000";
 				else
 --					if (CLK = '1' and CLK'Event) then
-						if sig_new_data_read = '1' and sig_new_data_read'Event then
-							sig_code_array(sig_code_index) <= dbOutSig;
+					if sig_new_data_read = '1' and sig_new_data_read'Event then
+						sig_code_array(sig_code_index) <= dbOutSig;
 	--					else
 	--						sig_code_array(sig_code_index) <= "00000000";
 --						end if;
@@ -382,16 +395,28 @@ NET_CMD_OUT_2 <= sig_code_array(5) & sig_code_array(6) & sig_code_array(7) & sig
 
 	process(sig_cur_cmd, sig_move_array)
 		begin
+			sig_opp_turn <= '0';
 			case sig_cur_cmd is
 			when sig_init_game =>
 				dbInSig <= sig_team_array(sig_move_index);
-				OUR_MOVE <= '0';
+				sig_our_move <= '0';
 			when sig_final_stop =>
 				dbInSig <= "00000000";		
-				OUR_MOVE <= '0';				
-			when others =>
-				OUR_MOVE <= '1';
+				sig_our_move <= '0';		
+			when 	sig_set_init_pos =>
+				sig_our_move <= '1';
+				dbInSig <= sig_move_array(sig_move_index);
+				
+			when sig_new_opp_move =>
+				sig_our_move <= '1';
+			when sig_new_opp_double_move =>
+				sig_our_move <= '1';
+				sig_opp_turn <= '1';
 				dbInSig <= sig_move_array(sig_move_index);		
+
+			when others =>
+				sig_our_move <= '0';
+				dbInSig <= (others => '0');		
 			end case;
 		end process;
 
@@ -441,6 +466,7 @@ NET_CMD_OUT_2 <= sig_code_array(5) & sig_code_array(6) & sig_code_array(7) & sig
 	process (stCur, rdaSig, dbOutsig, tbeSig, CONT,
 				sig_cur_cmd, sig_read_more, sig_write_more, GEN_DONE)
 		begin
+		
 			case stCur is
 -------------------------------------------------------------------------
 --
@@ -510,10 +536,10 @@ NET_CMD_OUT_2 <= sig_code_array(5) & sig_code_array(6) & sig_code_array(7) & sig
 						if sig_write_more = '1' then 
 							if GEN_DONE = '1' then
 								if CONT = '1' then
-								stNext <= stSend;
+									stNext <= stSend;
 								else 
-						stNext <= stAction;
-					end if;
+									stNext <= stAction;
+								end if;
 							else
 								stNext <= stAction;
 							end if;
@@ -597,8 +623,6 @@ NET_CMD_OUT_2 <= sig_code_array(5) & sig_code_array(6) & sig_code_array(7) & sig
 			end case;
 		end process;
 		
-
-
 -- led debugging
 	process (SW, sig_uart_debug, sig_test_leds, dbInSig, dbOutSig, 
 	sig_state_debug, sig_game_state, sig_code_array)
@@ -616,7 +640,7 @@ NET_CMD_OUT_2 <= sig_code_array(5) & sig_code_array(6) & sig_code_array(7) & sig
 			when "1100" => LEDS <= sig_move_array(2);
 			when "1101" => LEDS <= sig_move_array(3);
 			when "1110" => LEDS <= sig_code_array(4);
-			
+			when "1111" => LEDS <= blokus_state_debug;
 			when others => LEDS <= dbOutSig;
 		end case;
 	end process;	

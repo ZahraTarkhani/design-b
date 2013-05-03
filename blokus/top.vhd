@@ -42,9 +42,11 @@ entity top is
 end top;
 
 architecture Behavioral of top is
-	type mainState is (stIdle, stPlayer, stPlayer2, stOurMove,  stWriteDown);
+	--type mainState is (stIdle, stPlayer, stPlayer2, stOurMove,  stWriteDown);
+    type mainState is (stInit, stIdle, stFindFirstMove, stWriteFirstMove, stWriteFirstMoveAck, stWriteOpponentMove,  stWriteOpponentMoveAck, 
+	  stWriteSecondOpponentMove,stWriteSecondOpponentMoveAck,stFindAMove, stWriteAMove,stWriteAMoveAck,stWriteComputerAck); --
 
-	signal stCur  : mainState := stIdle;
+	signal stCur  : mainState := stInit;
 	signal stNext : mainState;
 
 	signal sig_write       : std_logic                     := '0';
@@ -64,6 +66,13 @@ architecture Behavioral of top is
 	signal sig_opp_move  : std_logic_vector(31 downto 0) := (others => '0');
 	signal sig_opp_move2 : std_logic_vector(31 downto 0) := (others => '0');
 	signal sig_clk_half : std_logic:= '0';
+	signal clk_cnt : integer range 0 to 8 := 0;
+
+	signal sig_blokus_rst : std_logic := '1';
+	signal sig_send_done : std_logic := '0';
+	signal sig_host_state : std_logic_vector(2 downto 0) := "000";
+	
+	signal sig_state_debug : std_logic_vector(7 downto 0) := x"00";
 
 begin
 	cmdHtoA : entity work.cmd_hex_to_ascii
@@ -86,7 +95,7 @@ begin
 
 	blokus : entity work.blokus
 		PORT MAP(
-			reset                   => RST,
+			reset                   => sig_blokus_rst,
 			clk                     => CLK,
 			cmd_command             => cmd_command,
 			sig_write               => sig_write,
@@ -108,9 +117,12 @@ begin
 
 			     --interact with move generator
 				  hex_debug => sig_best_move,
+				  blokus_state_debug => sig_state_debug,
 			     NET_MOVE_IN   => sig_move_in,
 			     NET_CMD_OUT   => sig_opp_move,
 			     NET_CMD_OUT_2 => sig_opp_move2,
+				  NET_SEND_DONE => sig_send_done,
+				  NET_CUR_CMD => sig_host_state,
 			     OUR_MOVE      => sig_our_move_serial,
 			     GEN_DONE      => sig_move_generator_done
 		);
@@ -119,127 +131,151 @@ begin
 	begin
 		if (CLK = '1' and CLK'Event) then
 			if RST = '1' then
-				stCur <= stIdle;
+				stCur <= stInit;
 			else
-				sig_clk_half <= not sig_clk_half;
-				if sig_clk_half = '1' then
+				clk_cnt <= clk_cnt + 1;
+--				sig_clk_half <= not sig_clk_half;
+--				if sig_clk_half = '1' then
+				if clk_cnt = 8 then
 					stCur <= stNext;
+					clk_cnt <= 0;
 				end if;
+--				end if;
 			end if;
 		end if;
 	end process;
 
-	process(stCur, sig_our_move_serial, sig_write_ready, sig_best_move, sig_move_generator_done, sig_cmd1, sig_opp_move2, sig_cmd2)
+	process(stCur, sig_our_move_serial, sig_send_done, sig_host_state, sig_write_ready, sig_best_move, sig_move_generator_done, sig_cmd1, sig_opp_move2, sig_cmd2)
 	begin
-		case stCur is
-			when stIdle =>
-				sig_player   <= '0';
-				sig_write    <= '0';
-				cmd_command  <= (others => '0');
-				sig_our_move <= '0';
-				if sig_our_move_serial = '1' then
-					stNext <= stPlayer;
-				else
-					stNext <= stIdle;
-				end if;
-
-			when stPlayer =>
-				sig_player   <= '1';
-				sig_write    <= '1';
-				cmd_command  <= sig_cmd1;
-				sig_our_move <= '0';
-				if sig_write_ready = '1' then
-					if sig_opp_move2 = "00000000000000000000000000000000" then
-						stNext <= stOurMove;
-					else
-						stNext <= stPlayer2;
-					end if;
-				else
-					stNext <= stPlayer;
-				end if;
-				
---				stNext       <= stPlayerIdle;
-				
-
---			when stPlayerIdle =>
---				sig_player   <= '0';
---				sig_write    <= '0';
---				sig_our_move <= '0';
---				cmd_command  <= (others => '0');
+        sig_write    <= '0';
+        sig_our_move <= '0';
+		  sig_blokus_rst <= '0';
+		  sig_player <= '0';
+		  cmd_command  <= (others => '0');
+			stNext <= stCur;
+								sig_state_debug <= x"00";
 
 
-			when stPlayer2 =>
-				sig_player   <= '1';
-				sig_write    <= '1';
-				sig_our_move <= '0';
-				cmd_command  <= sig_cmd2;
---c				stNext       <= stPlayerIdle2;
-				if sig_write_ready = '1' then
-					stNext <= stOurMove;
-				else
-					stNext <= stPlayer2;
-				end if;
+        case stCur is
+				when stInit => 
+					sig_state_debug <= x"01";
+					 sig_blokus_rst <= '1';
+					 stNext <= stIdle;
+		  
+            when stIdle =>
+									sig_state_debug <= x"02";
 
---			when stPlayerIdle2 =>
---				sig_player   <= '0';
---				sig_write    <= '0';
---				sig_our_move <= '0';
---				cmd_command  <= (others => '0');
---				if sig_write_ready = '1' then
---					stNext <= stOurMove;
---				else
---					stNext <= stPlayerIdle2;
---				end if;
+                if sig_our_move_serial = '1' then
+                    stNext <= stFindFirstMove;
+--					 else
+--						stNext <= stIdle;
+                end if;
+                
+            when stFindFirstMove =>
+                sig_our_move <= '1';
+                					sig_state_debug <= x"03";
 
-			when stOurMove =>
-				sig_player   <= '0';
-				sig_write    <= '0';
-				sig_our_move <= '1';
-				cmd_command  <= (others => '0');
---				stNext       <= stOurMove2;
-				if sig_move_generator_done = '1' then
-					stNext <= stWriteDown;
-				else
-					stNext <= stOurMove;
-				end if;
+                if sig_move_generator_done = '1' then --or times up
+                    stNext <= stWriteFirstMove;
+--					 else 
+--						stNext <= stFindFirstMove;
+                end if;
+                
+            when stWriteFirstMove => -- add new signal sig_host_state
+					 sig_write <= '1';
+					 					sig_state_debug <= x"04";
 
+					 cmd_command <= sig_best_move;
+					 sig_player <= '0';
+					 
+					 if sig_write_ready = '0' then
+					     stNext <= stWriteFirstMoveAck;
+					 end if;
+					 
+				when stWriteFirstMoveAck =>
+					 sig_state_debug <= sig_write_ready & sig_host_state & x"5";
+					
+                if sig_write_ready = '1'  then -- when 4XXXXYYYY
+						if sig_host_state = "100" then
+                    stNext <= stWriteSecondOpponentMove;	
+						elsif sig_host_state = "011" then --when 3XXXX
+                    stNext <= stWriteOpponentMove;
+--						elsif sig_host_state = "010" then --when 2A or 25
+--							if sig_send_done = '1' then
+--								stNext <= stIdle;
+--							end if;
+						end if;
+                end if;
+                
+            when stWriteSecondOpponentMove =>
+									sig_state_debug <= x"06";
 
---			when stOurMove2 =>
---				sig_player   <= '0';
---				sig_write    <= '0';
---				sig_our_move <= '0';
---				cmd_command  <= (others => '0');
---				if sig_move_generator_done = '1' then
---					stNext <= stWriteDown;
---				else
---					stNext <= stOurMove2;
---				end if;
+					 sig_player <= '1';
+                sig_write <= '1';
+                cmd_command  <= sig_cmd2;
+                if sig_write_ready = '0' then
+                    stNext <= stWriteSecondOpponentMoveAck;
+                end if;
+					 
+				when stWriteSecondOpponentMoveAck =>
+									sig_state_debug <= x"07";
 
-			when stWriteDown =>
-				sig_player   <= '0';
-				sig_write    <= '1';
-				sig_our_move <= '0';
-				cmd_command  <= sig_best_move;
---				stNext       <= stWriteDown2;
-				if sig_write_ready = '1' then
-					stNext <= stIdle;
-				else
-					stNext <= stWriteDown;
-				end if;
+					if sig_write_ready = '1' then
+                    stNext <= stWriteOpponentMove;
+                end if;
+                
+            when stWriteOpponentMove =>
+									sig_state_debug <= x"08";
 
+                sig_player <= '1';
+					 sig_write <= '1';
+                cmd_command  <= sig_cmd1;
+                if sig_write_ready = '0' then
+                    stNext <= stWriteOpponentMoveAck;
+                end if;
+					 
+				when stWriteOpponentMoveAck =>
+									sig_state_debug <= x"09";
 
---			when stWriteDown2 =>
---				sig_player   <= '0';
---				sig_write    <= '0';
---				sig_our_move <= '0';
---				cmd_command  <= (others => '0');
---				if sig_write_ready = '1' then
---					stNext <= stIdle;
---				else
---					stNext <= stWriteDown2;
---				end if;
+					if sig_write_ready = '1' then
+                    stNext <= stFindAMove;
+                end if;
+                
+            when stFindAMove =>
+									sig_state_debug <= x"0a";
 
-		end case;
+                sig_our_move <= '1';
+                --sig_player <= '0';
+                if sig_move_generator_done = '1' then -- or timeout
+                    stNext <= stWriteAMove;
+                end if;
+                
+            when stWriteAMove =>
+									sig_state_debug <= x"0b";
+
+                sig_player <= '0';
+                sig_write <= '1';
+                cmd_command  <= sig_best_move;
+					 
+					 if sig_write_ready = '0' then
+                    stNext <= stWriteComputerAck;
+                end if;
+					 
+				when stWriteComputerAck =>
+						sig_state_debug <= x"0c";
+						if sig_our_move_serial = '0' then
+							stNext <= stWriteAMoveAck;
+						end if;
+						
+				when stWriteAMoveAck =>
+					sig_state_debug <= x"0d";
+
+					if sig_write_ready = '1' and sig_our_move_serial = '1' then
+                    stNext <= stWriteOpponentMove;
+                end if;
+            
+					
+            end case;
 	end process;
 
 end Behavioral;

@@ -571,8 +571,8 @@ int main(int argc, char* argv[]){
 
     if((e = check_move(player, turn, m)) != 0){
       show_error(e);
-      printf("Player %d lost the game.\n", player);
-      break;
+      printf("Player %d //lost the game.\n", player);
+   //   break;
     }
   
     // OK, now place the move

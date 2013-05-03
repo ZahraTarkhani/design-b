@@ -122,6 +122,19 @@ BEGIN
 		
 		wait until sig_write_ready = '1';
 		
+		wait for clk_period * 2;
+		cmd_command <= x"9600";
+		sig_player <= '1';
+		sig_write <= '1';
+		
+		wait for clk_period * 2;
+		cmd_command <= (others => '0');
+		sig_player <= '0';
+		sig_write <= '0';
+		
+		wait until sig_write_ready = '1';	
+		
+		
 		sig_our_move <= '1';
 		
 		wait for clk_period * 2;

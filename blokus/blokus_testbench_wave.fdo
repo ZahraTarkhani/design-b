@@ -43,7 +43,7 @@ add wave -noupdate -group move_generator -format Literal -label board_value /blo
 add wave -noupdate -group move_generator -format Logic -label sig_next_stream /blokus_testbench/uut/move_generator/sig_next_stream
 add wave -noupdate -group move_generator -format Literal -label sig_stream_window /blokus_testbench/uut/move_generator/sig_stream_window
 add wave -noupdate -group move_generator -format Logic -label sig_rst_stream /blokus_testbench/uut/move_generator/sig_rst_stream
-add wave -noupdate -group move_generator -format Literal -label sig_board_piece /blokus_testbench/uut/move_generator/sig_board_piece
+##add wave -noupdate -group move_generator -format Literal -label sig_board_piece /blokus_testbench/uut/move_generator/sig_board_piece
 ##add wave -noupdate -group move_generator -format Logic -label sig_restart /blokus_testbench/uut/move_generator/sig_restart
 add wave -noupdate -group move_generator -format Logic -label sig_old_our_move /blokus_testbench/uut/move_generator/sig_old_our_move
 add wave -noupdate -group move_generator -format Literal -label sig_current_window /blokus_testbench/uut/move_generator/sig_current_window

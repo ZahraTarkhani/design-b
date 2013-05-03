@@ -80,6 +80,8 @@ architecture Behavioral of move_generator is
 
 	signal sig_stream_x : std_logic_vector(3 downto 0);
 	signal sig_stream_y : std_logic_vector(3 downto 0);
+	signal sig_stream_x_buf : std_logic_vector(3 downto 0);
+	signal sig_stream_y_buf : std_logic_vector(3 downto 0);
 
 begin
 	process(clk, rst, our_move) is
@@ -118,6 +120,8 @@ begin
 						elsif sig_stream_ready = '1' then
 							sig_next_stream    <= '1';
 							sig_current_window <= sig_stream_window;
+							sig_stream_x_buf <= sig_stream_x;
+							sig_stream_y_buf <= sig_stream_y;
 
 							move_id       <= 0;
 							current_state <= PROCESS_MOVE;
@@ -125,7 +129,7 @@ begin
 					when PROCESS_MOVE =>
 						if pieces_on_board(conv_integer(move_list(move_id).name)) = '0' then
 							if sig_valid_move = '1' then
-								best_move <= (sig_stream_x + 1) & (sig_stream_y + 1) & move_list(move_id).name & move_list(move_id).rotation;
+								best_move <= (sig_stream_x_buf + 1) & (sig_stream_y_buf + 1) & move_list(move_id).name & move_list(move_id).rotation;
 
 								current_best_move_id <= move_id;
 
