@@ -32,49 +32,34 @@ use work.types.all;
 --use UNISIM.VComponents.all;
 
 entity blokus is
-	Port(clk							: in std_logic;
-			reset: in std_logic;
-		  cmd_command             : in  std_logic_vector(15 downto 0);
-		  sig_write               : in  std_logic;
-		  sig_player              : in  std_logic;
-		  sig_write_ready         : out std_logic;
+	Port(clk                     : in  std_logic;
+		 reset                   : in  std_logic;
+		 cmd_command             : in move;
+		 sig_write               : in  std_logic;
+		 sig_player              : in  std_logic;
+		 sig_write_ready         : out std_logic;
 
-		  sig_our_move            : in  std_logic;
-		  sig_best_move           : out std_logic_vector(15 downto 0);
-		  sig_move_generator_done : out std_logic);
+		 sig_our_move            : in  std_logic;
+		 sig_best_move           : out move;
+		 sig_move_generator_done : out std_logic);
 end blokus;
 
 architecture structural of blokus is
-	--signal cmd_command      : std_logic_vector(15 downto 0);
-	signal cmd_x            : std_logic_vector(3 downto 0);
-	signal cmd_y            : std_logic_vector(3 downto 0);
-	signal cmd_tile         : std_logic_vector(4 downto 0);
 	signal cmd_piece_bitmap : std_logic_vector(24 downto 0);
 
 	signal marker_board_window_7 : board_window_7;
 
-	--signal sig_player      : std_logic;
-	--signal sig_write       : std_logic;
-	--signal sig_write_ready : std_logic;
-	
-	signal sig_block_x       : std_logic_vector(3 downto 0);
-	signal sig_block_y       : std_logic_vector(3 downto 0);
-	signal sig_board_piece   : board_piece;
-	
+	signal sig_block_x     : std_logic_vector(3 downto 0);
+	signal sig_block_y     : std_logic_vector(3 downto 0);
+	signal sig_board_piece : board_piece;
+ 
 	signal sig_pieces_on_board : std_logic_vector(20 downto 0);
-	
-	--signal sig_our_move            : std_logic;
-	--signal sig_best_move           : std_logic_vector(31 downto 0);
-	--signal sig_move_generator_done : std_logic;
 
 
 begin
 	--cmd_command <= "0101010110010000";  --55r0
 	cmd : entity work.command_converter
 		port map(command      => cmd_command,
-			     x            => cmd_x,
-			     y            => cmd_y,
-			     tile         => cmd_tile,
 			     piece_bitmap => cmd_piece_bitmap);
 
 	marker : entity work.piece_bitmap_marker
@@ -86,9 +71,9 @@ begin
 		port map(
 			clk             => clk,
 			rst             => reset,
-			x               => cmd_x,
-			y               => cmd_y,
-			tile            => cmd_tile,
+			x               => cmd_command.x,
+			y               => cmd_command.y,
+			tile            => cmd_command.name,
 			player          => sig_player,
 			pieces_on_board => sig_pieces_on_board,
 			piece_bitmap    => marker_board_window_7,
@@ -101,18 +86,14 @@ begin
 	move_generator : entity work.move_generator
 		port map(
 			clk             => clk,
-         rst             => reset,
-         our_move        => sig_our_move,
-			  
+			rst             => reset,
+			our_move        => sig_our_move,
 			board_x         => sig_block_x,
 			board_y         => sig_block_y,
 			board_value     => sig_board_piece,
 			pieces_on_board => sig_pieces_on_board,
-			  
-         best_move       => sig_best_move,
-         done            => sig_move_generator_done);
-		
-			
-			
+			best_move       => sig_best_move,
+			done            => sig_move_generator_done);
+
 end structural;
 

@@ -44,9 +44,13 @@ architecture Behavioral of piece_bitmap_marker is
 begin
 	copy : process(piece_bitmap) is
 	begin
-		for x in 1 to 5 loop
-			for y in 1 to 5 loop
-				sig_piece_bitmap_dump(y, x) <= piece_bitmap((x-1) + (5 * (y-1)));
+		for x in 0 to 6 loop
+			for y in 0 to 6 loop
+				if x = 0 or x = 6 or y = 0 or y = 6 then
+					sig_piece_bitmap_dump(y, x) <= '0';
+				else 
+					sig_piece_bitmap_dump(y, x) <= piece_bitmap(24 - ((x-1) + (5 * (y-1))));
+				end if;
 			end loop;
 		end loop;
 	end process;

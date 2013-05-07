@@ -48,7 +48,7 @@ begin
       
       for i in 0 to 4 loop
          for j in 0 to 4 loop
-            if piece_5x5(i + 5*j) = '1' then
+            if piece_5x5(24 - (i + 5*j)) = '1' then
                if window_5x5(j, i) = OCCUPIED then
                   sig_valid <= '0';
                elsif window_5x5(j, i) =  ACTIVE then

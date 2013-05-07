@@ -22,6 +22,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 use ieee.numeric_std.all;
+use work.types.all;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -33,18 +34,15 @@ use ieee.numeric_std.all;
 --use UNISIM.VComponents.all;
 
 entity command_converter is
-	Port(command      : in  std_logic_vector(15 downto 0);
-		 x             : out std_logic_vector(3  downto 0);
-		 y             : out std_logic_vector(3  downto 0);
-		 tile          : out std_logic_vector(4  downto 0);
-		 piece_bitmap  : out std_logic_vector(24 downto 0));
+	Port(command      : in  move;
+		 piece_bitmap : out std_logic_vector(24 downto 0));
 end command_converter;
 
 architecture Behavioral of command_converter is
 	type Matrix is array (0 to 20, 0 to 7) of std_logic_vector(24 downto 0);
 	constant piece_lut : Matrix := (
 		--a
-		 ("0000000000001000000000000",
+		("0000000000001000000000000",
 			"0000000000001000000000000",
 			"0000000000001000000000000",
 			"0000000000001000000000000",
@@ -233,9 +231,6 @@ architecture Behavioral of command_converter is
 			"0000000100011100010000000",
 			"0000000100011100010000000"));
 begin
-	x            <= command(15 downto 12);
-	y            <= command(11 downto 8);
-	tile         <= command(7 downto 3);
-	piece_bitmap <= piece_lut(conv_integer(command(7 downto 3)), conv_integer(command(2 downto 0)));
+	piece_bitmap <= piece_lut(conv_integer(command.name), conv_integer(command.rotation));
 end Behavioral;
 

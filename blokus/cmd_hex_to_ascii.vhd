@@ -34,36 +34,39 @@ use ieee.numeric_std.all;
 use work.types.all;
 
 entity cmd_hex_to_ascii is
-	Port(hex_command   : in  std_logic_vector(15 downto 0);
-		  ascii_command : out std_logic_vector(31 downto 0));
+	Port(hex_command   : in  move;
+		 ascii_command : out std_logic_vector(31 downto 0));
 end cmd_hex_to_ascii;
 
 architecture Behavioral of cmd_hex_to_ascii is
-
 begin
 	process(hex_command)
 	begin
-		
-		-- x
-		if hex_command(15 downto 12) <= 9 then
-			ascii_command(31 downto 24) <= hex_command(15 downto 12) + x"30";
+		if hex_command.x = 0 and hex_command.y = 0 then
+			-- pass
+			ascii_command <= x"30303030";
 		else
-			ascii_command(31 downto 24) <= hex_command(15 downto 12) + x"61" - 10;
+			-- x
+			if hex_command.x <= 9 then
+				ascii_command(31 downto 24) <= hex_command.x + x"30";
+			else
+				ascii_command(31 downto 24) <= hex_command.x + x"61" - 10;
+			end if;
+
+			-- y
+			if hex_command.y <= 9 then
+				ascii_command(23 downto 16) <= hex_command.y + x"30";
+			else
+				ascii_command(23 downto 16) <= hex_command.y + x"61" - 10;
+			end if;
+
+			-- piece_id
+			ascii_command(15 downto 8) <= hex_command.name + x"61";
+
+			-- rotation
+			ascii_command(7 downto 0) <= hex_command.rotation + x"30";
 		end if;
-		
-		-- y
-		if hex_command(11 downto 8) <= 9 then
-			ascii_command(23 downto 16) <= hex_command(11 downto 8) + x"30";
-		else
-			ascii_command(23 downto 16) <= hex_command(11 downto 8) + x"61" - 10;
-		end if;
-		
-		-- piece_id
-		ascii_command(15 downto 8) <= hex_command(7 downto 3) + x"61";
-		
-		-- rotation
-		ascii_command(7 downto 0) <= hex_command(2 downto 0) + x"30";
-				
+
 	end process;
 
 end Behavioral;

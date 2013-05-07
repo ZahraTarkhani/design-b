@@ -56,7 +56,7 @@ end game_state;
 architecture Behavioral of game_state is
 	signal curr_board : board := (others => (others => EMPTY));
 
-	type memory_state is (IDLE, COPY, WRITING);
+	type memory_state is (IDLE, WRITING);
 	signal current_state : memory_state := IDLE;
 
 	signal sig_piece_bitmap : board_window_7               := (others => (others => EMPTY));
@@ -94,21 +94,20 @@ begin
 							pieces_on_board(conv_integer(tile)) <= '1';
 						end if;
 
-						current_state <= COPY;
-
 						write_ready <= '0';
-					end if;
-				when COPY =>
-					sig_piece_bitmap <= piece_bitmap;
-					sig_x            <= x;
-					sig_y            <= y;
 
-					current_state <= WRITING;
-					i             <= -3;
-					j             <= -3;
+						sig_piece_bitmap <= piece_bitmap;
+						sig_x            <= x;
+						sig_y            <= y;
+
+						current_state <= WRITING;
+						i             <= -3;
+						j             <= -3;
+
+					end if;
 				when WRITING =>
-					if sig_y + i >= 0 and sig_y + i <= 13 then
-						if sig_x + j >= 0 and sig_x + j <= 13 then
+					if sig_y + i > 0 and sig_y + i <= 14 then
+						if sig_x + j > 0 and sig_x + j <= 14 then
 							if sig_piece_bitmap(i + 3, j + 3) > curr_board(conv_integer(sig_y + i - 1), conv_integer(sig_x + j - 1)) then
 								curr_board(conv_integer(sig_y + i - 1), conv_integer(sig_x + j - 1)) <= sig_piece_bitmap(i + 3, j + 3);
 							end if;
