@@ -59,11 +59,12 @@ entity DataCntrl is
 				CONT 		: in std_logic := '0';
 				
 				--interact with move generator
-				hex_debug : in std_logic_vector(15 downto 0);
+--				hex_debug : in std_logic_vector(15 downto 0);
 				blokus_state_debug : in std_logic_vector(7 downto 0);
 				NET_MOVE_IN : in std_logic_vector(31 downto 0);
 				NET_CUR_CMD : out std_logic_vector(2 downto 0);
 --				NET_OPP_TURN : out std_logic;
+				NET_BIG_RESET : out std_logic;
 				NET_SEND_DONE : out std_logic;
 				NET_CMD_OUT : out std_logic_vector(31 downto 0);
 				NET_CMD_OUT_2 : out std_logic_vector(31 downto 0);
@@ -396,12 +397,14 @@ NET_CUR_CMD <= sig_cur_cmd;
 	process(sig_cur_cmd, sig_move_array)
 		begin
 			sig_opp_turn <= '0';
+			NET_BIG_RESET <= '0';	
 			case sig_cur_cmd is
 			when sig_init_game =>
 				dbInSig <= sig_team_array(sig_move_index);
 				sig_our_move <= '0';
 			when sig_final_stop =>
-				dbInSig <= "00000000";		
+				dbInSig <= "00000000";
+				NET_BIG_RESET <= '1';			
 				sig_our_move <= '0';		
 			when 	sig_set_init_pos =>
 				sig_our_move <= '1';
@@ -409,6 +412,7 @@ NET_CUR_CMD <= sig_cur_cmd;
 				
 			when sig_new_opp_move =>
 				sig_our_move <= '1';
+				dbInSig <= sig_move_array(sig_move_index);		
 			when sig_new_opp_double_move =>
 				sig_our_move <= '1';
 				sig_opp_turn <= '1';
@@ -535,11 +539,11 @@ NET_CUR_CMD <= sig_cur_cmd;
 --					if CONT = '1' then
 						if sig_write_more = '1' then 
 							if GEN_DONE = '1' then
-								if CONT = '1' then
+--								if CONT = '1' then
 									stNext <= stSend;
-								else 
-									stNext <= stAction;
-								end if;
+--								else 
+--									stNext <= stAction;
+--								end if;
 							else
 								stNext <= stAction;
 							end if;
@@ -632,8 +636,8 @@ NET_CUR_CMD <= sig_cur_cmd;
 			when "0011" => LEDS <= sig_state_debug;
 			when "0111" => LEDS <= conv_std_logic_vector(sig_code_index, 8);
 			when "0010" => LEDS <= dbInSig;
-			when "0100" => LEDS <= hex_debug(15 downto 8);--sig_test_leds;
-			when "0101" => LEDS <= hex_debug(7 downto 0);--conv_std_logic_vector(sig_move_index, 8);
+--			when "0100" => LEDS <= hex_debug(15 downto 8);--sig_test_leds;
+--			when "0101" => LEDS <= hex_debug(7 downto 0);--conv_std_logic_vector(sig_move_index, 8);
 			when "1000" => LEDS <= sig_game_state;
 			when "1001" => LEDS <= sig_move_array(0);
 			when "1010" => LEDS <= sig_move_array(1);
