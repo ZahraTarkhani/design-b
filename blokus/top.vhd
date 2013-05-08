@@ -69,6 +69,7 @@ architecture Behavioral of top is
 	signal sig_blokus_rst : std_logic := '1';
 	signal sig_send_done  : std_logic;
 	signal sig_host_state : std_logic_vector(2 downto 0);
+	signal sig_big_reset : std_logic := '0';
 
 	signal sig_state_debug : std_logic_vector(7 downto 0) := x"00";
 
@@ -114,11 +115,12 @@ begin
 			     CONT               => CONT,
 
 			     --interact with move generator
-			     hex_debug          => sig_best_move,
+--			     hex_debug          => sig_best_move,
 			     blokus_state_debug => sig_state_debug,
 			     NET_MOVE_IN        => sig_move_in,
 			     NET_CMD_OUT        => sig_opp_move,
 			     NET_CMD_OUT_2      => sig_opp_move2,
+				  NET_BIG_RESET 		=> sig_big_reset,	
 			     NET_SEND_DONE      => sig_send_done,
 			     NET_CUR_CMD        => sig_host_state,
 			     OUR_MOVE           => sig_our_move_serial,
@@ -128,7 +130,7 @@ begin
 	process(CLK, RST)
 	begin
 		if (CLK = '1' and CLK'Event) then
-			if RST = '1' then
+			if RST = '1' or sig_big_reset = '1' then
 				stCur <= stInit;
 			else
 				clk_cnt <= clk_cnt + 1;
@@ -149,7 +151,10 @@ begin
 		sig_our_move    <= '0';
 		sig_blokus_rst  <= '0';
 		sig_player      <= '0';
-		cmd_command     <= (others => '0');
+		cmd_command.x     <= (others => '0');
+		cmd_command.y     <= (others => '0');
+		cmd_command.name     <= (others => '0');
+		cmd_command.rotation     <= (others => '0');
 		stNext          <= stCur;
 		sig_state_debug <= x"00";
 
