@@ -306,7 +306,7 @@ begin
 	--This process gererates the sequence of events needed to control the TBE flag--
 	process (stbeCur, CLK, WR, DBIN, load)
 		begin
-
+			TBE <= TBE;
 			case stbeCur is
 
 				when stbeIdle =>
