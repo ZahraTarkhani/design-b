@@ -120,6 +120,26 @@ begin
 							current_state <= PROCESS_MOVE;
 						end if;
 					when PROCESS_MOVE =>
+						if move_id < sig_move_list_len - 1 and move_id + 1 < current_best_move_id then
+							move_id <= move_id + 1;
+						else
+							if sig_stream_done = '1' then
+								done          <= '1';
+								current_state <= IDLE;
+							elsif sig_stream_ready = '1' then
+								sig_next_stream    <= '1';
+								sig_current_window <= sig_stream_window;
+
+								sig_stream_x_buf <= sig_stream_x;
+								sig_stream_y_buf <= sig_stream_y;
+
+								move_id       <= 0;
+								current_state <= PROCESS_MOVE;
+							else
+								current_state <= WAIT_FOR_MOVE;
+							end if;
+						end if;
+						
 						if pieces_on_board(conv_integer(sig_cur_move.name)) = '0' then
 							if sig_valid_move = '1' then
 								best_move.x          <= sig_stream_x_buf + 1;
@@ -143,26 +163,6 @@ begin
 								else
 									current_state <= WAIT_FOR_MOVE;
 								end if;
-							end if;
-						end if;
-
-						if move_id < sig_move_list_len - 1 and move_id + 1 < current_best_move_id then
-							move_id <= move_id + 1;
-						else
-							if sig_stream_done = '1' then
-								done          <= '1';
-								current_state <= IDLE;
-							elsif sig_stream_ready = '1' then
-								sig_next_stream    <= '1';
-								sig_current_window <= sig_stream_window;
-
-								sig_stream_x_buf <= sig_stream_x;
-								sig_stream_y_buf <= sig_stream_y;
-
-								move_id       <= 0;
-								current_state <= PROCESS_MOVE;
-							else
-								current_state <= WAIT_FOR_MOVE;
 							end if;
 						end if;
 				end case;

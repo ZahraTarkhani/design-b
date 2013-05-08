@@ -88,31 +88,10 @@ BEGIN
 
 		reset <= '0';
 		
-		wait for clk_period * 2;
-		sig_our_move <= '1';
-
-		wait for clk_period * 2;
-		sig_our_move <= '0';
-
-		wait until sig_move_generator_done = '1';
-		
-		report("found move\n");
-		
-		cmd_command <= sig_best_move;
-		sig_player  <= '0';
-		sig_write   <= '1';
-
-		wait for clk_period * 2;
-		cmd_command <= (x"0", x"0", "00000", "000");
-		sig_player  <= '0';
-		sig_write   <= '0';
-
-		wait until sig_write_ready = '1';
-
 		wait for clk_period;
 		cmd_command.x        <= x"5";
-		cmd_command.y        <= x"5";
-		cmd_command.name     <= "00011";
+		cmd_command.y        <= x"3";
+		cmd_command.name     <= "00100";
 		cmd_command.rotation <= "000";
 
 		sig_player <= '1';
@@ -127,22 +106,122 @@ BEGIN
 
 		wait until sig_write_ready = '1';
 
---		wait for clk_period;
---		cmd_command.x        <= x"9";
---		cmd_command.y        <= x"6";
---		cmd_command.name     <= "00000";
---		cmd_command.rotation <= "000";
---
---		sig_player <= '1';
---		wait for clk_period;
---		sig_write  <= '1';
---
---		wait for clk_period * 2;
---		cmd_command <= (x"0", x"0", "00000", "000");
---		sig_player  <= '0';
---		sig_write   <= '0';
---
---		wait until sig_write_ready = '1';
+		sig_our_move <= '1';
+
+		wait for clk_period * 2;
+		sig_our_move <= '0';
+
+		wait until sig_move_generator_done = '1';
+		
+		
+		wait for clk_period * 2;
+		sig_our_move <= '1';
+
+		wait for clk_period * 2;
+		sig_our_move <= '0';
+
+		wait until sig_move_generator_done = '1';
+				
+		cmd_command <= sig_best_move;
+		sig_player  <= '0';
+		sig_write   <= '1';
+
+		wait for clk_period * 2;
+		cmd_command <= (x"0", x"0", "00000", "000");
+		sig_player  <= '0';
+		sig_write   <= '0';
+
+		wait until sig_write_ready = '1';
+
+		wait for clk_period;
+		cmd_command.x        <= x"2";
+		cmd_command.y        <= x"1";
+		cmd_command.name     <= "01010";
+		cmd_command.rotation <= "111";
+
+		sig_player <= '1';
+		
+		wait for clk_period;
+		sig_write  <= '1';
+
+		wait for clk_period * 2;
+		cmd_command <= (x"0", x"0", "00000", "000");
+		sig_player  <= '0';
+		sig_write   <= '0';
+
+		wait until sig_write_ready = '1';
+
+		sig_our_move <= '1';
+
+		wait for clk_period * 2;
+		sig_our_move <= '0';
+
+		wait until sig_move_generator_done = '1';
+
+		cmd_command <= sig_best_move;
+		sig_player  <= '0';
+		sig_write   <= '1';
+
+		wait for clk_period * 2;
+		cmd_command <= (x"0", x"0", "00000", "000");
+		sig_player  <= '0';
+		sig_write   <= '0';
+
+		wait until sig_write_ready = '1';
+		
+		wait for clk_period;
+		cmd_command.x        <= x"6";
+		cmd_command.y        <= x"1";
+		cmd_command.name     <= "00000";
+		cmd_command.rotation <= "000";
+
+		sig_player <= '1';
+		
+		wait for clk_period;
+		sig_write  <= '1';
+
+		wait for clk_period * 2;
+		cmd_command <= (x"0", x"0", "00000", "000");
+		sig_player  <= '0';
+		sig_write   <= '0';
+
+		wait until sig_write_ready = '1';
+
+		sig_our_move <= '1';
+
+		wait for clk_period * 2;
+		sig_our_move <= '0';
+
+		wait until sig_move_generator_done = '1';
+
+		cmd_command <= sig_best_move;
+		sig_player  <= '0';
+		sig_write   <= '1';
+
+		wait for clk_period * 2;
+		cmd_command <= (x"0", x"0", "00000", "000");
+		sig_player  <= '0';
+		sig_write   <= '0';
+
+		wait until sig_write_ready = '1';
+		
+		wait for clk_period;
+		cmd_command.x        <= x"7";
+		cmd_command.y        <= x"2";
+		cmd_command.name     <= "00001";
+		cmd_command.rotation <= "000";
+
+		sig_player <= '1';
+		
+		wait for clk_period;
+		sig_write  <= '1';
+
+		wait for clk_period * 2;
+		cmd_command <= (x"0", x"0", "00000", "000");
+		sig_player  <= '0';
+		sig_write   <= '0';
+
+		wait until sig_write_ready = '1';
 
 		sig_our_move <= '1';
 
