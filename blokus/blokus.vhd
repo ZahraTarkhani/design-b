@@ -38,6 +38,11 @@ entity blokus is
 		 sig_write               : in  std_logic;
 		 sig_player              : in  std_logic;
 		 sig_write_ready         : out std_logic;
+		 
+		 --debug
+		CONT : in std_logic;
+		LEDS : out std_logic_vector(7 downto 0);
+		SW : in std_logic_vector(3 downto 0);
 
 		 sig_our_move            : in  std_logic;
 		 sig_best_move           : out move;
@@ -77,6 +82,9 @@ begin
 			player          => sig_player,
 			pieces_on_board => sig_pieces_on_board,
 			piece_bitmap    => marker_board_window_7,
+			CONT => CONT,
+			LEDS => LEDS,
+			SW => SW,
 			do_write        => sig_write,
 			write_ready     => sig_write_ready,
 			block_x         => sig_block_x,

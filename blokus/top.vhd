@@ -71,7 +71,12 @@ architecture Behavioral of top is
 	signal sig_host_state : std_logic_vector(2 downto 0);
 	signal sig_big_reset : std_logic := '0';
 
+	signal sig_write_d : std_logic := '0';
+
+	signal sig_serial_send : std_logic :='0';
+
 	signal sig_state_debug : std_logic_vector(7 downto 0) := x"00";
+	signal sig_fake_leds :  std_logic_vector(7 downto 0) := x"00";
 
 begin
 	cmdHtoA : entity work.cmd_hex_to_ascii
@@ -97,9 +102,12 @@ begin
 			reset                   => sig_blokus_rst,
 			clk                     => CLK,
 			cmd_command             => cmd_command,
-			sig_write               => sig_write,
+			sig_write               => sig_write_d,
 			sig_player              => sig_player,
 			sig_write_ready         => sig_write_ready,
+			CONT => CONT,
+			LEDS => sig_fake_leds,--LEDS,
+			SW => SW,
 			sig_our_move            => sig_our_move,
 			sig_best_move           => sig_best_move,
 			sig_move_generator_done => sig_move_generator_done
@@ -109,13 +117,13 @@ begin
 		port map(TXD                => TXD,
 			     RXD                => RXD,
 			     CLK                => CLK,
-			     LEDS               => LEDS,
+			     LEDS               => LEDS,--sig_fake_leds,--
 			     RST                => RST,
 			     SW                 => SW,
 			     CONT               => CONT,
 
 			     --interact with move generator
---			     hex_debug          => sig_best_move,
+			     hex_debug          => sig_cmd1,
 			     blokus_state_debug => sig_state_debug,
 			     NET_MOVE_IN        => sig_move_in,
 			     NET_CMD_OUT        => sig_opp_move,
@@ -124,7 +132,7 @@ begin
 			     NET_SEND_DONE      => sig_send_done,
 			     NET_CUR_CMD        => sig_host_state,
 			     OUR_MOVE           => sig_our_move_serial,
-			     GEN_DONE           => sig_move_generator_done
+			     GEN_DONE           => sig_serial_send
 		);
 
 	process(CLK, RST)
@@ -136,8 +144,9 @@ begin
 				clk_cnt <= clk_cnt + 1;
 				--				sig_clk_half <= not sig_clk_half;
 				--				if sig_clk_half = '1' then
-				if clk_cnt = 7 then
+				if clk_cnt = 3 then
 					stCur   <= stNext;
+					sig_write_d <= sig_write;
 					clk_cnt <= 0;
 				end if;
 			--				end if;
@@ -157,6 +166,7 @@ begin
 		cmd_command.rotation     <= (others => '0');
 		stNext          <= stCur;
 		sig_state_debug <= x"00";
+		sig_serial_send <= '0';
 
 		case stCur is
 			when stInit =>
@@ -196,6 +206,7 @@ begin
 
 			when stWriteFirstMoveAck =>
 				sig_state_debug <= sig_write_ready & sig_host_state & x"5";
+				sig_serial_send <= '1';
 
 				if sig_write_ready = '1' then -- when 4XXXXYYYY
 					if sig_host_state = "100" then
@@ -221,7 +232,7 @@ begin
 
 			when stWriteSecondOpponentMoveAck =>
 				sig_state_debug <= x"07";
-
+				sig_player  <= '1';
 				if sig_write_ready = '1' then
 					stNext <= stWriteOpponentMove;
 				end if;
@@ -230,7 +241,7 @@ begin
 				sig_state_debug <= x"08";
 
 				sig_player  <= '1';
-				sig_write   <= '1';
+				sig_write   <= '1'; 
 				cmd_command <= sig_cmd1;
 				if sig_write_ready = '0' then
 					stNext <= stWriteOpponentMoveAck;
@@ -238,7 +249,7 @@ begin
 
 			when stWriteOpponentMoveAck =>
 				sig_state_debug <= x"09";
-
+				sig_player  <= '1';
 				if sig_write_ready = '1' then
 					stNext <= stFindAMove;
 				end if;
@@ -265,18 +276,22 @@ begin
 
 			when stWriteComputerAck =>
 				sig_state_debug <= x"0c";
+				sig_serial_send <= '1';
 				if sig_our_move_serial = '0' then
 					stNext <= stWriteAMoveAck;
 				end if;
 
 			when stWriteAMoveAck =>
 				sig_state_debug <= x"0d";
-
+				
 				if sig_write_ready = '1' and sig_our_move_serial = '1' then
 					stNext <= stWriteOpponentMove;
 				end if;
 
 		end case;
+		
+		
+		
 	end process;
 
 end Behavioral;

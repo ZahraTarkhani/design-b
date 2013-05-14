@@ -47,6 +47,11 @@ entity game_state is
 		do_write        : in  std_logic;
 		write_ready     : out std_logic;
 
+--debug
+		CONT : in std_logic;
+		LEDS : out std_logic_vector(7 downto 0);
+		SW : in std_logic_vector(3 downto 0);
+
 		block_x         : in  std_logic_vector(3 downto 0);
 		block_y         : in  std_logic_vector(3 downto 0);
 		block_value     : out board_piece
@@ -62,6 +67,8 @@ architecture Behavioral of game_state is
 	signal sig_piece_bitmap : board_window_7               := (others => (others => EMPTY));
 	signal sig_x            : std_logic_vector(3 downto 0) := (others => '0');
 	signal sig_y            : std_logic_vector(3 downto 0) := (others => '0');
+
+	signal sig_state : std_logic_vector(1 downto 0);
 
 	signal i : integer := -3;
 	signal j : integer := -3;
@@ -82,14 +89,17 @@ begin
 
 			i <= -3;
 			j <= -3;
+			sig_state <= "10";
 
 			current_state <= IDLE;
 		elsif rising_edge(clk) then
+--			sig_state <= "00";
 			case current_state is
 				when IDLE =>
 					write_ready <= '1';
+					if do_write = '1' and CONT = '1' then
+						sig_state <= "01";
 
-					if do_write = '1' then
 						if player = '0' then
 							pieces_on_board(conv_integer(tile)) <= '1';
 						end if;
@@ -114,13 +124,15 @@ begin
 						end if;
 					end if;
 
+
 					if i < 3 then
 						i <= i + 1;
 					else
 						if j < 3 then
 							i <= -3;
 							j <= j + 1;
-						else
+						elsif CONT = '0' then
+							sig_state <= "10";
 							current_state <= IDLE;
 							write_ready   <= '1';
 						end if;
@@ -132,5 +144,25 @@ begin
 
 	block_value <= curr_board(conv_integer(block_y), conv_integer(block_x)) when block_x >= 0 and block_x <= 13 and block_y >= 0 and block_y <= 13 else
 		OCCUPIED;
+		
+		
+	process(SW) is
+	begin
+	case(SW) is
+		when "0000" =>
+			LEDS <= "000000" & sig_state;	
+		when "0001" => 
+			LEDS <= x & y;
+		when "0010" =>
+			LEDS <= "000" & tile;
+		when "0011" => 
+			LEDS <= sig_x & sig_y;
+		when others =>
+			LEDS <= (others => '0');
+	end case;
+	end process;
+		
+	
+		
 end Behavioral;
 

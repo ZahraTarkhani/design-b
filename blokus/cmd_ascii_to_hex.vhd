@@ -43,10 +43,10 @@ architecture Behavioral of cmd_ascii_to_hex is
 begin
 	process(ascii_command)
 	begin
-		if ascii_command = x"303030" then
-			-- pass
-			hex_command <= (others => (others => '0'));
-		else
+--		if ascii_command = x"30303030" then
+--			-- pass
+--			hex_command <= (others => (others => '0'));
+--		else
 			-- x
 			if ascii_command(31 downto 24) <= x"39" then
 				hex_command.x <= ascii_command(27 downto 24);
@@ -66,7 +66,7 @@ begin
 
 			-- rotation
 			hex_command.rotation <= ascii_command(2 downto 0);
-		end if;
+--		end if;
 
 	end process;
 
