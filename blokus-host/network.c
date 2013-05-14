@@ -60,7 +60,7 @@ char* sendString(char* aString){
 char* prompt(char* code){
 	//code = "------";
 	printf("input code:");
-	fgets(code, 7, stdin);
+	fgets(code, 10, stdin);
 
 	if(feof(stdin)){
 		code[0] = 0;

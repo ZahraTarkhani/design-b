@@ -97,7 +97,7 @@ begin
 			case current_state is
 				when IDLE =>
 					write_ready <= '1';
-					if do_write = '1' and CONT = '1' then
+					if do_write = '1'  then --and CONT = '1'
 						sig_state <= "01";
 
 						if player = '0' then
@@ -131,7 +131,7 @@ begin
 						if j < 3 then
 							i <= -3;
 							j <= j + 1;
-						elsif CONT = '0' then
+						else --elsif CONT = '0' then --
 							sig_state <= "10";
 							current_state <= IDLE;
 							write_ready   <= '1';

@@ -25,8 +25,12 @@ NET "LEDS[0]" LOC = "D4" | IOSTANDARD = SSTL2_I ;
 
 
 #Push Button East for Reset
+#east/right
 NET "RST" LOC = "H13" | IOSTANDARD = LVTTL | PULLDOWN ;
+#south/btm
 NET "CONT" LOC = "K17" | IOSTANDARD = LVTTL | PULLDOWN ;
+#west/left
+NET "CONT_NET" LOC = "D18" | IOSTANDARD = LVTTL | PULLDOWN ;
 
 #Switches For Debugs
 NET "SW<0>" LOC = "L13" | IOSTANDARD = LVTTL | PULLUP ;

@@ -498,7 +498,7 @@ NET_CUR_CMD <= sig_cur_cmd;
 					sig_new_data_written <= '0';
 					sig_action_done <= '0';
 					sig_read_done <= '0';
-					if rdaSig = '1' then
+					if rdaSig = '1'  then --and CONT = '0'
 						--sig_code_array(0) <= dbOutSig;
 --						sig_code_temp <= dbOutSig;
 						sig_new_data_read <= '1';
@@ -521,8 +521,8 @@ NET_CUR_CMD <= sig_cur_cmd;
 					sig_new_data_read <= '0';
 					sig_action_done <= '0';
 					sig_read_done <= '0';
-					if rdaSig = '0' then
-						if sig_read_more = '1' then
+					if rdaSig = '0'   then --and CONT = '1'
+						if sig_read_more = '1' then --
 							stNext <= stReceive;
 						else
 							stNext <= stAction;
@@ -545,11 +545,11 @@ NET_CUR_CMD <= sig_cur_cmd;
 --					if CONT = '1' then
 						if sig_write_more = '1' then 
 							if GEN_DONE = '1' or sig_team_code = '1' then
---								if CONT = '1' then
+								if CONT = '1' then
 									stNext <= stSend;
---								else 
---									stNext <= stAction;
---								end if;
+								else 
+									stNext <= stAction;
+								end if;
 							else
 								stNext <= stAction;
 							end if;
@@ -640,17 +640,20 @@ NET_CUR_CMD <= sig_cur_cmd;
 		case SW is
 			when "0001" => LEDS <= sig_uart_debug; -- UART signals (see details above in signal assignments)
 			when "0011" => LEDS <= sig_state_debug;
-			when "0111" => LEDS <= conv_std_logic_vector(sig_code_index, 8);
 			when "0010" => LEDS <= dbInSig;
-			when "0100" => LEDS <= hex_debug.x & hex_debug.y;--sig_test_leds;
-			when "0101" => LEDS <= hex_debug.name & hex_debug.rotation;--conv_std_logic_vector(sig_move_index, 8);
+
 			when "1000" => LEDS <= sig_game_state;
-			when "1001" => LEDS <= sig_move_array(0);
-			when "1010" => LEDS <= sig_move_array(1);
-			when "1100" => LEDS <= sig_move_array(2);
-			when "1101" => LEDS <= sig_move_array(3);
-			when "1110" => LEDS <= sig_code_array(6);
-			when "1111" => LEDS <= blokus_state_debug;
+			when "0000" => LEDS <= conv_std_logic_vector(sig_code_index, 8);
+			when "1001" => LEDS <= sig_code_array(0);
+			when "1010" => LEDS <= sig_code_array(1);
+			when "1011" => LEDS <= sig_code_array(2);
+			when "1100" => LEDS <= sig_code_array(3);
+			when "1101" => LEDS <= sig_code_array(4);
+			when "1110" => LEDS <= sig_code_array(5);
+			when "1111" => LEDS <= sig_code_array(6);
+			when "0100" => LEDS <= sig_code_array(7);--hex_debug.x & hex_debug.y;--sig_test_leds;
+			when "0101" => LEDS <= sig_code_array(8);--hex_debug.name & hex_debug.rotation;--conv_std_logic_vector(sig_move_index, 8);
+			when "0111" => LEDS <= blokus_state_debug;
 			when others => LEDS <= dbOutSig;
 		end case;
 	end process;	

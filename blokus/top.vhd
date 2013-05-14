@@ -38,7 +38,8 @@ entity top is
 		 RXD  : in  STD_LOGIC;
 		 LEDS : out STD_LOGIC_VECTOR(7 downto 0);
 		 SW   : in  STD_LOGIC_VECTOR(3 downto 0);
-		 CONT : in  STD_LOGIC);
+		 CONT : in  STD_LOGIC;
+		 CONT_NET : in  STD_LOGIC);
 end top;
 
 architecture Behavioral of top is
@@ -120,7 +121,7 @@ begin
 			     LEDS               => LEDS,--sig_fake_leds,--
 			     RST                => RST,
 			     SW                 => SW,
-			     CONT               => CONT,
+			     CONT               => CONT_NET,
 
 			     --interact with move generator
 			     hex_debug          => sig_cmd1,
@@ -144,7 +145,7 @@ begin
 				clk_cnt <= clk_cnt + 1;
 				--				sig_clk_half <= not sig_clk_half;
 				--				if sig_clk_half = '1' then
-				if clk_cnt = 3 then
+				if clk_cnt = 8 then
 					stCur   <= stNext;
 					sig_write_d <= sig_write;
 					clk_cnt <= 0;

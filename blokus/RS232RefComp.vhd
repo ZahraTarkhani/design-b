@@ -97,6 +97,8 @@ architecture Behavioral of Rs232RefComp is
 	signal rShift	:  std_logic := '0';
 	signal dataRST :  std_logic := '0';
 	signal dataIncr:  std_logic := '0';
+	
+	signal half_error :std_logic := '0';
 
 	signal strCur	:  rstate	:= strIdle; 				--Current state in the Receive state machine
 	signal strNext	:  rstate;									--Next state in the Receive state machine
@@ -111,17 +113,19 @@ architecture Behavioral of Rs232RefComp is
 
 begin
 	frameError <= not rdSReg(9);
-	parError <= not ( rdSReg(8) xor (((rdSReg(0) xor rdSReg(1)) xor (rdSReg(2) xor rdSReg(3))) xor ((rdSReg(4) xor rdSReg(5)) xor (rdSReg(6) xor rdSReg(7)))) );
+	parError <= ( rdSReg(8) xor (((rdSReg(0) xor rdSReg(1)) xor (rdSReg(2) xor rdSReg(3))) xor ((rdSReg(4) xor rdSReg(5)) xor (rdSReg(6) xor rdSReg(7)))) );
 	DBOUT <= rdReg;
 	tfReg <= DBIN;
-	par <=   not( ((tfReg(0) xor tfReg(1)) xor (tfReg(2) xor tfReg(3))) xor ((tfReg(4) xor tfReg(5)) xor (tfReg(6) xor tfReg(7))) );
+	par <=  ( ((tfReg(0) xor tfReg(1)) xor (tfReg(2) xor tfReg(3))) xor ((tfReg(4) xor tfReg(5)) xor (tfReg(6) xor tfReg(7))) );
 
 --Clock Dividing Functions--
 
 	process (CLK, clkDiv)	    						--set up clock divide for rClk
 		begin
 			if (Clk = '1' and Clk'event) then
+--				if (clkDiv = baudDivide and half_error = '1') or (clkDiv = baudDivide + 1 and half_error = '0') then
 				if (clkDiv = baudDivide) then
+--					half_error <= not  half_error;
 					clkDiv <= "000000000";
 				else
 					clkDiv <= clkDiv +1;
@@ -132,7 +136,7 @@ begin
 	process (clkDiv, rClk, CLK)	 					--Define rClk
 	begin
 		if CLK = '1' and CLK'Event then
-			if clkDiv = baudDivide then
+			if (clkDiv = baudDivide )   then
 				rClk <= not rClk;
 			else
 				rClk <= rClk;
