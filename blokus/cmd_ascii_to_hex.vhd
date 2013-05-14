@@ -35,18 +35,47 @@ use ieee.numeric_std.all;
 use work.types.all;
 
 entity cmd_ascii_to_hex is
-	Port(ascii_command : in  std_logic_vector(31 downto 0);
-		 hex_command   : out move);
+	Port(ascii_command       : in  std_logic_vector(31 downto 0);
+		 flip_board          : in  std_logic;
+		 hex_command_flipped : out move);
 end cmd_ascii_to_hex;
 
 architecture Behavioral of cmd_ascii_to_hex is
+	signal hex_command : move;
+
+	type possible_flips is array (0 to 7) of std_logic_vector(2 downto 0);
+	constant flips : possible_flips := (
+		"111",
+		"010",
+		"001",
+		"100",
+		"011",
+		"110",
+		"101",
+		"000"
+	);
 begin
+	process(hex_command, flip_board)
+	begin
+		if flip_board = '0' then
+			hex_command_flipped <= hex_command;
+		else
+			hex_command_flipped.x        <= 14 - hex_command.x;
+			hex_command_flipped.y        <= 14 - hex_command.y;
+			hex_command_flipped.name     <= hex_command.name;
+			hex_command_flipped.rotation <= flips(conv_integer(hex_command.rotation));
+		end if;
+	end process;
+
 	process(ascii_command)
 	begin
---		if ascii_command = x"30303030" then
---			-- pass
---			hex_command <= (others => (others => '0'));
---		else
+		if ascii_command = x"30303030" then
+			-- pass
+			hex_command.x        <= x"0";
+			hex_command.y        <= x"0";
+			hex_command.name     <= "00000";
+			hex_command.rotation <= "000";
+		else
 			-- x
 			if ascii_command(31 downto 24) <= x"39" then
 				hex_command.x <= ascii_command(27 downto 24);
@@ -66,7 +95,7 @@ begin
 
 			-- rotation
 			hex_command.rotation <= ascii_command(2 downto 0);
---		end if;
+		end if;
 
 	end process;
 
