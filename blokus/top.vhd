@@ -145,7 +145,7 @@ begin
 				clk_cnt <= clk_cnt + 1;
 				--				sig_clk_half <= not sig_clk_half;
 				--				if sig_clk_half = '1' then
-				if clk_cnt = 8 then
+				if clk_cnt = 3 then
 					stCur   <= stNext;
 					sig_write_d <= sig_write;
 					clk_cnt <= 0;

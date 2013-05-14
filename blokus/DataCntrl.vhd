@@ -299,6 +299,7 @@ NET_CUR_CMD <= sig_cur_cmd;
 						sig_write_more <= '1';
 					end if;
 					sig_cur_cmd <= sig_init_game;
+					
 				elsif sig_code_array(0) = sig_nine then
 					sig_read_more <= '0';
 					sig_write_more <= '0';
@@ -545,11 +546,11 @@ NET_CUR_CMD <= sig_cur_cmd;
 --					if CONT = '1' then
 						if sig_write_more = '1' then 
 							if GEN_DONE = '1' or sig_team_code = '1' then
-								if CONT = '1' then
+--								if CONT = '1' then
 									stNext <= stSend;
-								else 
-									stNext <= stAction;
-								end if;
+--								else 
+--									stNext <= stAction;
+--								end if;
 							else
 								stNext <= stAction;
 							end if;
