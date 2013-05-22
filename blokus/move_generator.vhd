@@ -53,7 +53,7 @@ architecture Behavioral of move_generator is
 	signal current_state : generator_stream := IDLE;
 
 	signal sig_old_our_move   : std_logic := '0';
-	signal sig_current_window : board_window_5;
+	signal sig_current_window : board_window_7;
 	signal move_id            : integer   := 0;
 
 	signal sig_move_list_len : integer;
@@ -68,7 +68,7 @@ architecture Behavioral of move_generator is
 	--signal sig_board_piece   : board_piece;
 	signal sig_rst_stream    : std_logic;
 	signal sig_next_stream   : std_logic := '0';
-	signal sig_stream_window : board_window_5;
+	signal sig_stream_window : board_window_7;
 	signal sig_stream_ready  : std_logic;
 
 	signal sig_stream_x     : std_logic_vector(3 downto 0);
@@ -170,14 +170,14 @@ begin
 		end if;
 	end process;
 
-	move_checker : entity work.valid_place_5x5_window
+	move_checker : entity work.valid_place_7x7_window
 		port map(
-			window_5x5  => sig_current_window,
+			window_7x7  => sig_current_window,
 			piece_5x5   => sig_cur_move.bitmap,
 			valid_place => sig_valid_move
 		);
 
-	get_5x5_window : entity work.board_to_5x5
+	get_7x7_window : entity work.board_to_7x7
 		port map(
 			clk           => clk,
 			rst           => rst,

@@ -294,6 +294,7 @@ begin
 						sig_write_more <= '1';
 					end if;
 					sig_cur_cmd <= sig_init_game;
+					
 				elsif sig_code_array(0) = sig_nine then
 					sig_read_more  <= '0';
 					sig_write_more <= '0';

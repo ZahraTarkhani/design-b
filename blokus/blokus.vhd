@@ -53,6 +53,7 @@ architecture structural of blokus is
 	signal cmd_piece_bitmap : std_logic_vector(24 downto 0);
 
 	signal marker_board_window_7 : board_window_7;
+  signal marker_board_opp_window_7 : board_window_7;
 
 	signal sig_block_x     : std_logic_vector(3 downto 0);
 	signal sig_block_y     : std_logic_vector(3 downto 0);
@@ -69,8 +70,9 @@ begin
 
 	marker : entity work.piece_bitmap_marker
 		port map(piece_bitmap        => cmd_piece_bitmap,
-			     player              => sig_player,
-			     piece_bitmap_marker => marker_board_window_7);
+             player              => sig_player,
+             piece_bitmap_marker => marker_board_window_7,
+             piece_bitmap_marker_opp => marker_board_opp_window_7);
 
 	gstate : entity work.game_state
 		port map(
@@ -82,6 +84,7 @@ begin
 			player          => sig_player,
 			pieces_on_board => sig_pieces_on_board,
 			piece_bitmap    => marker_board_window_7,
+      piece_bitmap_opp => marker_board_opp_window_7,
 			CONT => CONT,
 			LEDS => LEDS,
 			SW => SW,
