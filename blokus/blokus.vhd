@@ -34,15 +34,15 @@ use work.types.all;
 entity blokus is
 	Port(clk                     : in  std_logic;
 		 reset                   : in  std_logic;
-		 cmd_command             : in move;
+		 cmd_command             : in  move;
 		 sig_write               : in  std_logic;
 		 sig_player              : in  std_logic;
 		 sig_write_ready         : out std_logic;
-		 
+
 		 --debug
-		CONT : in std_logic;
-		LEDS : out std_logic_vector(7 downto 0);
-		SW : in std_logic_vector(3 downto 0);
+		 CONT                    : in  std_logic;
+		 LEDS                    : out std_logic_vector(7 downto 0);
+		 SW                      : in  std_logic_vector(3 downto 0);
 
 		 sig_our_move            : in  std_logic;
 		 sig_best_move           : out move;
@@ -52,15 +52,15 @@ end blokus;
 architecture structural of blokus is
 	signal cmd_piece_bitmap : std_logic_vector(24 downto 0);
 
-	signal marker_board_window_7 : board_window_7;
-  signal marker_board_opp_window_7 : board_window_7;
+	signal marker_board_window_7     : board_window_7;
+	signal marker_board_opp_window_7 : board_window_7;
 
-	signal sig_block_x     : std_logic_vector(3 downto 0);
-	signal sig_block_y     : std_logic_vector(3 downto 0);
-	signal sig_board_piece : board_piece;
- 
+	signal sig_block_x         : std_logic_vector(3 downto 0);
+	signal sig_block_y         : std_logic_vector(3 downto 0);
+	signal sig_board_piece_us  : board_piece;
+	signal sig_board_piece_opp : board_piece;
+
 	signal sig_pieces_on_board : std_logic_vector(20 downto 0);
-
 
 begin
 	--cmd_command <= "0101010110010000";  --55r0
@@ -69,30 +69,31 @@ begin
 			     piece_bitmap => cmd_piece_bitmap);
 
 	marker : entity work.piece_bitmap_marker
-		port map(piece_bitmap        => cmd_piece_bitmap,
-             player              => sig_player,
-             piece_bitmap_marker => marker_board_window_7,
-             piece_bitmap_marker_opp => marker_board_opp_window_7);
+		port map(piece_bitmap            => cmd_piece_bitmap,
+			     player                  => sig_player,
+			     piece_bitmap_marker_us  => marker_board_window_7,
+			     piece_bitmap_marker_opp => marker_board_opp_window_7);
 
 	gstate : entity work.game_state
 		port map(
-			clk             => clk,
-			rst             => reset,
-			x               => cmd_command.x,
-			y               => cmd_command.y,
-			tile            => cmd_command.name,
-			player          => sig_player,
-			pieces_on_board => sig_pieces_on_board,
-			piece_bitmap    => marker_board_window_7,
-      piece_bitmap_opp => marker_board_opp_window_7,
-			CONT => CONT,
-			LEDS => LEDS,
-			SW => SW,
-			do_write        => sig_write,
-			write_ready     => sig_write_ready,
-			block_x         => sig_block_x,
-			block_y         => sig_block_y,
-			block_value     => sig_board_piece);
+			clk              => clk,
+			rst              => reset,
+			x                => cmd_command.x,
+			y                => cmd_command.y,
+			tile             => cmd_command.name,
+			player           => sig_player,
+			pieces_on_board  => sig_pieces_on_board,
+			piece_bitmap     => marker_board_window_7,
+			piece_bitmap_opp => marker_board_opp_window_7,
+			CONT             => CONT,
+			LEDS             => LEDS,
+			SW               => SW,
+			do_write         => sig_write,
+			write_ready      => sig_write_ready,
+			block_x          => sig_block_x,
+			block_y          => sig_block_y,
+			block_value_us   => sig_board_piece_us,
+			block_value_opp  => sig_board_piece_opp);
 
 	move_generator : entity work.move_generator
 		port map(
@@ -101,7 +102,8 @@ begin
 			our_move        => sig_our_move,
 			board_x         => sig_block_x,
 			board_y         => sig_block_y,
-			board_value     => sig_board_piece,
+			board_value_us  => sig_board_piece_us,
+			board_value_opp => sig_board_piece_opp,
 			pieces_on_board => sig_pieces_on_board,
 			best_move       => sig_best_move,
 			done            => sig_move_generator_done);
