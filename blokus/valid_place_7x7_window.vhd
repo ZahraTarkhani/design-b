@@ -31,17 +31,17 @@ use work.types.all;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity valid_place_5x5_window is
-    Port ( window_5x5 : in  board_window_5;
+entity valid_place_7x7_window is
+    Port ( window_7x7 : in  board_window_7;
            piece_5x5 : in  std_logic_vector(24 downto 0);
            valid_place : out  STD_LOGIC);
-end valid_place_5x5_window;
+end valid_place_7x7_window;
 
-architecture Behavioral of valid_place_5x5_window is
+architecture Behavioral of valid_place_7x7_window is
 signal sig_valid : std_logic;
 signal sig_active : std_logic;
 begin
-   process(window_5x5, piece_5x5) is
+   process(window_7x7, piece_5x5) is
    begin
       sig_active <= '0';
       sig_valid <= '1';
@@ -49,9 +49,9 @@ begin
       for i in 0 to 4 loop
          for j in 0 to 4 loop
             if piece_5x5(24 - (i + 5*j)) = '1' then
-               if window_5x5(j, i) = OCCUPIED then
+               if window_7x7(j+1, i+1) = OCCUPI then
                   sig_valid <= '0';
-               elsif window_5x5(j, i) =  ACTIVE then
+               elsif window_7x7(j+1, i+1) =  ACTIVE then
                   sig_active <= '1';
                end if;
              end if;

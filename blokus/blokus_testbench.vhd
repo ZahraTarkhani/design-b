@@ -55,7 +55,11 @@ ARCHITECTURE behavior OF blokus_testbench IS
 	signal sig_our_move            : std_logic := '0';
 	signal sig_best_move           : move;
 	signal sig_move_generator_done : std_logic;
-
+	
+	signal fake_sw : std_logic_vector(3 downto 0);
+	signal fake_cont : std_logic;
+	signal fake_leds : std_logic_vector(7 downto 0);
+	
 BEGIN
 
 	-- Instantiate the Unit Under Test (UUT)
@@ -65,6 +69,9 @@ BEGIN
 			cmd_command             => cmd_command,
 			sig_write               => sig_write,
 			sig_player              => sig_player,
+			CONT => fake_cont,
+			SW =>fake_sw,
+			LEDS => fake_leds,
 			sig_write_ready         => sig_write_ready,
 			sig_our_move            => sig_our_move,
 			sig_best_move           => sig_best_move,

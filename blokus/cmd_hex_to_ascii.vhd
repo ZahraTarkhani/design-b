@@ -1,40 +1,13 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date:    16:39:15 04/16/2013 
--- Design Name: 
--- Module Name:    cmd_hex_to_ascii - Behavioral 
--- Project Name: 
--- Target Devices: 
--- Tool versions: 
--- Description: 
---
--- Dependencies: 
---
--- Revision: 
--- Revision 0.01 - File Created
--- Additional Comments: 
---
-----------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 use ieee.numeric_std.all;
 
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx primitives in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
 use work.types.all;
 
 entity cmd_hex_to_ascii is
-	Port(hex_command   : in  move;
+	Port(    hex_command   : in  move;
 		 flip_board    : in  std_logic;
 		 ascii_command : out std_logic_vector(31 downto 0));
 end cmd_hex_to_ascii;
@@ -69,7 +42,7 @@ begin
 	process(hex_command_flipped)
 	begin
 		if hex_command_flipped.x = 0 and hex_command_flipped.y = 0 then
-			-- pass
+			-- pass (0000)
 			ascii_command <= x"30303030";
 		else
 			-- x

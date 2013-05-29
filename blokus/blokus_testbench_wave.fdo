@@ -17,7 +17,8 @@ add wave -noupdate -group command_converter -format Literal -label piece_bitmap 
 add wave -noupdate -group piece_bitmap_marker -format Logic -label player /blokus_testbench/uut/marker/player
 add wave -noupdate -group piece_bitmap_marker -format Literal -label piece_bitmap /blokus_testbench/uut/marker/piece_bitmap
 add wave -noupdate -group piece_bitmap_marker -format Literal -label sig_piece_bitmap_dump /blokus_testbench/uut/marker/sig_piece_bitmap_dump
-add wave -noupdate -group piece_bitmap_marker -format Literal -label piece_bitmap_marker /blokus_testbench/uut/marker/piece_bitmap_marker
+add wave -noupdate -group piece_bitmap_marker -format Literal -label piece_bitmap_marker_us /blokus_testbench/uut/marker/piece_bitmap_marker_us
+add wave -noupdate -group piece_bitmap_marker -format Literal -label piece_bitmap_marker_opp /blokus_testbench/uut/marker/piece_bitmap_marker_opp
 
 add wave -noupdate -group game_state -format Literal -label x -radix unsigned /blokus_testbench/uut/gstate/x
 add wave -noupdate -group game_state -format Literal -label y -radix unsigned /blokus_testbench/uut/gstate/y
@@ -30,27 +31,32 @@ add wave -noupdate -group game_state -format Logic -label do_write /blokus_testb
 add wave -noupdate -group game_state -format Logic -label write_ready /blokus_testbench/uut/gstate/write_ready
 add wave -noupdate -group game_state -format Literal -label block_y -radix unsigned /blokus_testbench/uut/gstate/block_y
 add wave -noupdate -group game_state -format Literal -label block_x -radix unsigned /blokus_testbench/uut/gstate/block_x
-add wave -noupdate -group game_state -format Literal -label block_value /blokus_testbench/uut/gstate/block_value
+add wave -noupdate -group game_state -format Literal -label block_value_us /blokus_testbench/uut/gstate/block_value_us
+add wave -noupdate -group game_state -format Literal -label block_value_opp /blokus_testbench/uut/gstate/block_value_opp
 add wave -noupdate -group game_state -format Literal -label i -radix decimal /blokus_testbench/uut/gstate/i
 add wave -noupdate -group game_state -format Literal -label j -radix decimal /blokus_testbench/uut/gstate/j
 add wave -noupdate -group game_state -format Literal -label curr_board /blokus_testbench/uut/gstate/curr_board
+add wave -noupdate -group game_state -format Literal -label opp_board /blokus_testbench/uut/gstate/opp_board
 add wave -noupdate -group game_state -format Literal -label pieces_on_board /blokus_testbench/uut/gstate/pieces_on_board
 add wave -noupdate -group game_state -format Literal -label current_state /blokus_testbench/uut/gstate/current_state
 
 add wave -noupdate -group move_generator -format Logic -label our_move /blokus_testbench/uut/move_generator/our_move
 add wave -noupdate -group move_generator -format Literal -label pieces_on_board /blokus_testbench/uut/move_generator/pieces_on_board
-add wave -noupdate -group move_generator -format Literal -label board_value /blokus_testbench/uut/move_generator/board_value
+add wave -noupdate -group move_generator -format Literal -label board_value_us /blokus_testbench/uut/move_generator/board_value_us
+add wave -noupdate -group move_generator -format Literal -label board_value_opp /blokus_testbench/uut/move_generator/board_value_opp
 add wave -noupdate -group move_generator -format Logic -label sig_next_stream /blokus_testbench/uut/move_generator/sig_next_stream
-add wave -noupdate -group move_generator -format Literal -label sig_stream_window /blokus_testbench/uut/move_generator/sig_stream_window
+add wave -noupdate -group move_generator -format Literal -label sig_stream_window_us /blokus_testbench/uut/move_generator/sig_stream_window_us
+add wave -noupdate -group move_generator -format Literal -label sig_stream_window_opp /blokus_testbench/uut/move_generator/sig_stream_window_opp
 add wave -noupdate -group move_generator -format Logic -label sig_rst_stream /blokus_testbench/uut/move_generator/sig_rst_stream
 add wave -noupdate -group move_generator -format Literal -label sig_stream_x -radix unsigned /blokus_testbench/uut/move_generator/sig_stream_x
 add wave -noupdate -group move_generator -format Literal -label sig_stream_y -radix unsigned /blokus_testbench/uut/move_generator/sig_stream_y
 add wave -noupdate -group move_generator -format Literal -label sig_stream_x_buf -radix unsigned /blokus_testbench/uut/move_generator/sig_stream_x_buf
 add wave -noupdate -group move_generator -format Literal -label sig_stream_y_buf -radix unsigned /blokus_testbench/uut/move_generator/sig_stream_y_buf
 add wave -noupdate -group move_generator -format Logic -label sig_old_our_move /blokus_testbench/uut/move_generator/sig_old_our_move
-add wave -noupdate -group move_generator -format Literal -label sig_current_window /blokus_testbench/uut/move_generator/sig_current_window
+add wave -noupdate -group move_generator -format Literal -label sig_current_window_us /blokus_testbench/uut/move_generator/sig_current_window_us
+add wave -noupdate -group move_generator -format Literal -label sig_current_window_opp /blokus_testbench/uut/move_generator/sig_current_window_opp
 add wave -noupdate -group move_generator -format Literal -label move_id /blokus_testbench/uut/move_generator/move_id
-add wave -noupdate -group move_generator -format Literal -label current_best_move_id /blokus_testbench/uut/move_generator/current_best_move_id
+add wave -noupdate -group move_generator -format Literal -label sig_cur_move_rating /blokus_testbench/uut/move_generator/sig_cur_move_rating
 add wave -noupdate -group move_generator -format Logic -label sig_valid_move /blokus_testbench/uut/move_generator/sig_valid_move
 add wave -noupdate -group move_generator -format Literal -label sig_cur_move -radix unsigned /blokus_testbench/uut/move_generator/sig_cur_move
 add wave -noupdate -group move_generator -format Logic -label sig_stream_done /blokus_testbench/uut/move_generator/sig_stream_done
@@ -61,28 +67,45 @@ add wave -noupdate -group move_generator -format Literal -label best_move -radix
 add wave -noupdate -group move_generator -format Logic -label done /blokus_testbench/uut/move_generator/done
 add wave -noupdate -group move_generator -format Literal -label current_state /blokus_testbench/uut/move_generator/current_state
 
-add wave -noupdate -group board_to_5x5 -format Logic -label rst_stream /blokus_testbench/uut/move_generator/get_5x5_window/rst_stream
-add wave -noupdate -group board_to_5x5 -format Logic -label next_stream /blokus_testbench/uut/move_generator/get_5x5_window/next_stream
-add wave -noupdate -group board_to_5x5 -format Logic -label stream_ready /blokus_testbench/uut/move_generator/get_5x5_window/stream_ready
-add wave -noupdate -group board_to_5x5 -format Literal -label stream_window /blokus_testbench/uut/move_generator/get_5x5_window/stream_window
-add wave -noupdate -group board_to_5x5 -format Literal -label board_x -radix unsigned /blokus_testbench/uut/move_generator/get_5x5_window/board_x
-add wave -noupdate -group board_to_5x5 -format Literal -label board_y -radix unsigned /blokus_testbench/uut/move_generator/get_5x5_window/board_y
-add wave -noupdate -group board_to_5x5 -format Literal -label board_value /blokus_testbench/uut/move_generator/get_5x5_window/board_value
-add wave -noupdate -group board_to_5x5 -format Literal -label cell_y /blokus_testbench/uut/move_generator/get_5x5_window/cell_y
-add wave -noupdate -group board_to_5x5 -format Literal -label cell_x /blokus_testbench/uut/move_generator/get_5x5_window/cell_x
-add wave -noupdate -group board_to_5x5 -format Logic -label sig_stream_ready /blokus_testbench/uut/move_generator/get_5x5_window/sig_stream_ready
-add wave -noupdate -group board_to_5x5 -format Logic -label stream_done /blokus_testbench/uut/move_generator/get_5x5_window/stream_done
-add wave -noupdate -group board_to_5x5 -format Literal -label stream_loc_x -radix unsigned /blokus_testbench/uut/move_generator/get_5x5_window/stream_loc_x
-add wave -noupdate -group board_to_5x5 -format Literal -label stream_loc_y -radix unsigned /blokus_testbench/uut/move_generator/get_5x5_window/stream_loc_y
-add wave -noupdate -group board_to_5x5 -format Literal -label stream_window_sig /blokus_testbench/uut/move_generator/get_5x5_window/stream_window_sig
-add wave -noupdate -group board_to_5x5 -format Logic -label sig_stream_window_active /blokus_testbench/uut/move_generator/get_5x5_window/sig_stream_window_active
-add wave -noupdate -group board_to_5x5 -format Literal -label current_state /blokus_testbench/uut/move_generator/get_5x5_window/current_state
+add wave -noupdate -group board_to_7x7 -format Logic -label rst_stream /blokus_testbench/uut/move_generator/get_7x7_window/rst_stream
+add wave -noupdate -group board_to_7x7 -format Logic -label next_stream /blokus_testbench/uut/move_generator/get_7x7_window/next_stream
+add wave -noupdate -group board_to_7x7 -format Logic -label stream_ready /blokus_testbench/uut/move_generator/get_7x7_window/stream_ready
+add wave -noupdate -group board_to_7x7 -format Literal -label stream_window_us /blokus_testbench/uut/move_generator/get_7x7_window/stream_window_us
+add wave -noupdate -group board_to_7x7 -format Literal -label stream_window_opp /blokus_testbench/uut/move_generator/get_7x7_window/stream_window_opp
+add wave -noupdate -group board_to_7x7 -format Literal -label board_x -radix unsigned /blokus_testbench/uut/move_generator/get_7x7_window/board_x
+add wave -noupdate -group board_to_7x7 -format Literal -label board_y -radix unsigned /blokus_testbench/uut/move_generator/get_7x7_window/board_y
+add wave -noupdate -group board_to_7x7 -format Literal -label board_value_us /blokus_testbench/uut/move_generator/get_7x7_window/board_value_us
+add wave -noupdate -group board_to_7x7 -format Literal -label board_value_opp /blokus_testbench/uut/move_generator/get_7x7_window/board_value_opp
+add wave -noupdate -group board_to_7x7 -format Literal -label cell_y /blokus_testbench/uut/move_generator/get_7x7_window/cell_y
+add wave -noupdate -group board_to_7x7 -format Literal -label cell_x /blokus_testbench/uut/move_generator/get_7x7_window/cell_x
+add wave -noupdate -group board_to_7x7 -format Logic -label sig_stream_ready /blokus_testbench/uut/move_generator/get_7x7_window/sig_stream_ready
+add wave -noupdate -group board_to_7x7 -format Logic -label stream_done /blokus_testbench/uut/move_generator/get_7x7_window/stream_done
+add wave -noupdate -group board_to_7x7 -format Literal -label stream_loc_x -radix unsigned /blokus_testbench/uut/move_generator/get_7x7_window/stream_loc_x
+add wave -noupdate -group board_to_7x7 -format Literal -label stream_loc_y -radix unsigned /blokus_testbench/uut/move_generator/get_7x7_window/stream_loc_y
+add wave -noupdate -group board_to_7x7 -format Literal -label stream_window_sig_us /blokus_testbench/uut/move_generator/get_7x7_window/stream_window_sig_us
+add wave -noupdate -group board_to_7x7 -format Literal -label stream_window_sig_opp /blokus_testbench/uut/move_generator/get_7x7_window/stream_window_sig_opp
+add wave -noupdate -group board_to_7x7 -format Logic -label sig_stream_window_active /blokus_testbench/uut/move_generator/get_7x7_window/sig_stream_window_active
+add wave -noupdate -group board_to_7x7 -format Literal -label current_state /blokus_testbench/uut/move_generator/get_7x7_window/current_state
 
-add wave -noupdate -group move_checker -format Literal -label piece_5x5 /blokus_testbench/uut/move_generator/move_checker/piece_5x5
-add wave -noupdate -group move_checker -format Literal -label window_5x5 /blokus_testbench/uut/move_generator/move_checker/window_5x5
-add wave -noupdate -group move_checker -format Logic -label sig_valid /blokus_testbench/uut/move_generator/move_checker/sig_valid
-add wave -noupdate -group move_checker -format Logic -label sig_active /blokus_testbench/uut/move_generator/move_checker/sig_active
-add wave -noupdate -group move_checker -format Logic -label valid_place /blokus_testbench/uut/move_generator/move_checker/valid_place
+add wave -noupdate -group valid_place_move_7x7 -format Literal -label piece_5x5 /blokus_testbench/uut/move_generator/move_checker/piece_5x5
+add wave -noupdate -group valid_place_move_7x7 -format Literal -label window_7x7 /blokus_testbench/uut/move_generator/move_checker/window_7x7
+add wave -noupdate -group valid_place_move_7x7 -format Logic -label sig_valid /blokus_testbench/uut/move_generator/move_checker/sig_valid
+add wave -noupdate -group valid_place_move_7x7 -format Logic -label sig_active /blokus_testbench/uut/move_generator/move_checker/sig_active
+add wave -noupdate -group valid_place_move_7x7 -format Logic -label valid_place /blokus_testbench/uut/move_generator/move_checker/valid_place
+
+add wave -noupdate -group move_ranker -format Literal -label our_window /blokus_testbench/uut/move_generator/move_ranker/our_window
+add wave -noupdate -group move_ranker -format Literal -label opponent_window /blokus_testbench/uut/move_generator/move_ranker/opponent_window
+add wave -noupdate -group move_ranker -format Literal -label move_bitmap /blokus_testbench/uut/move_generator/move_ranker/move_bitmap
+add wave -noupdate -group move_ranker -format Literal -label rating /blokus_testbench/uut/move_generator/move_ranker/rating
+add wave -noupdate -group move_ranker -format Literal -label peice_count /blokus_testbench/uut/move_generator/move_ranker/peice_count
+add wave -noupdate -group move_ranker -format Literal -label overlap_count /blokus_testbench/uut/move_generator/move_ranker/overlap_count
+add wave -noupdate -group move_ranker -format Literal -label our_active_squeres /blokus_testbench/uut/move_generator/move_ranker/our_active_squeres
+add wave -noupdate -group move_ranker -format Literal -label opp_active_squeres /blokus_testbench/uut/move_generator/move_ranker/opp_active_squeres
+add wave -noupdate -group move_ranker -format Literal -label our_unblockable_squeres /blokus_testbench/uut/move_generator/move_ranker/our_unblockable_squeres
+add wave -noupdate -group move_ranker -format Literal -label opp_unblockable_squeres /blokus_testbench/uut/move_generator/move_ranker/opp_unblockable_squeres
+add wave -noupdate -group move_ranker -format Literal -label move_window_us /blokus_testbench/uut/move_generator/move_ranker/move_window_us
+add wave -noupdate -group move_ranker -format Literal -label move_window_opp /blokus_testbench/uut/move_generator/move_ranker/move_window_opp
+
 
 WaveRestoreCursors {{Cursor 1} {0 ps} 0}
 configure wave -namecolwidth 150
