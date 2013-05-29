@@ -410,8 +410,8 @@ void init_serial(){
     tcflush(serial_fd[p], TCIOFLUSH);
   
     memset(&tio[p], 0, sizeof(tio[p]));
-    cfsetispeed(&tio[p], 115200);
-    cfsetospeed(&tio[p], 115200);
+    cfsetispeed(&tio[p], 115200 );//
+    cfsetospeed(&tio[p], 115200); //115200
     tio[p].c_cflag |= CS8; // 8N1
     tio[p].c_cflag |= CLOCAL; // local connection, no modem control
     tio[p].c_cflag |= CREAD;

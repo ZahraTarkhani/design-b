@@ -47,6 +47,7 @@ entity game_state is
 		do_write        : in  std_logic;
 		write_ready     : out std_logic;
 
+
 --debug
 		CONT : in std_logic;
 		LEDS : out std_logic_vector(7 downto 0);
@@ -73,7 +74,7 @@ architecture Behavioral of game_state is
 	signal i : integer := -3;
 	signal j : integer := -3;
 begin
-	place_piece : process(clk, rst) is
+	place_piece : process(clk, rst, x,y,tile,sig_x,sig_y, sig_state) is
 	begin
 		if rst = '1' then
 			for reset_i in 0 to 13 loop
@@ -97,7 +98,7 @@ begin
 			case current_state is
 				when IDLE =>
 					write_ready <= '1';
-					if do_write = '1'  then --and CONT = '1'
+					if do_write = '1'  then -- and CONT = '1'
 						sig_state <= "01";
 
 						if player = '0' then
@@ -131,7 +132,7 @@ begin
 						if j < 3 then
 							i <= -3;
 							j <= j + 1;
-						else --elsif CONT = '0' then --
+						elsif do_write = '0' then --else --
 							sig_state <= "10";
 							current_state <= IDLE;
 							write_ready   <= '1';

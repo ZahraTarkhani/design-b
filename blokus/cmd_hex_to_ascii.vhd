@@ -44,14 +44,14 @@ architecture Behavioral of cmd_hex_to_ascii is
 
 	type possible_flips is array (0 to 7) of std_logic_vector(2 downto 0);
 	constant flips : possible_flips := (
-		"111",
-		"010",
-		"001",
 		"100",
-		"011",
-		"110",
 		"101",
-		"000"
+		"110",
+		"111",
+		"000",
+		"001",
+		"010",
+		"011"
 	);
 begin
 	process(hex_command, flip_board)
