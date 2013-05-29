@@ -32,8 +32,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 use work.types.all;
 
 entity top is
-	Port(CLK      : in  STD_LOGIC;
-		 RST      : in  STD_LOGIC;
+	Port(clk_fast : in  STD_LOGIC;
+		 rst_in   : in  STD_LOGIC;
 		 TXD      : out STD_LOGIC;
 		 RXD      : in  STD_LOGIC;
 		 LEDS     : out STD_LOGIC_VECTOR(7 downto 0);
@@ -45,6 +45,10 @@ end top;
 architecture Behavioral of top is
 	--type mainState is (stIdle, stPlayer, stPlayer2, stOurMove,  stWriteDown);
 	type mainState is (stInit, stIdle, stFindFirstMove, stWriteFirstMove, stWriteFirstMoveAck, stWriteOpponentMove, stWriteOpponentMoveAck, stWriteSecondOpponentMove, stWriteSecondOpponentMoveAck, stFindAMove, stWriteAMove, stWriteAMoveAck, stWriteComputerAck); --
+
+	signal clk    : std_logic;
+	signal locked : std_logic;
+	signal rst    : std_logic;
 
 	signal stCur  : mainState := stInit;
 	signal stNext : mainState;
@@ -82,6 +86,16 @@ architecture Behavioral of top is
 	signal sig_flip_board : std_logic;
 
 begin
+	rst <= rst_in or not locked;
+	
+	dcm : entity work.dcm_blokus
+		port map(CLKIN_IN        => clk_fast,
+			     RST_IN          => rst,
+			     CLKDV_OUT       => clk,
+			     CLKIN_IBUFG_OUT => open,
+			     CLK0_OUT        => open,
+			     LOCKED_OUT      => locked);
+
 	cmdHtoA : entity work.cmd_hex_to_ascii
 		port map(
 			hex_command   => sig_best_move,
@@ -106,7 +120,7 @@ begin
 	blokus : entity work.blokus
 		PORT MAP(
 			reset                   => sig_blokus_rst,
-			clk                     => CLK,
+			clk                     => clk,
 			cmd_command             => cmd_command,
 			sig_write               => sig_write_d,
 			sig_player              => sig_player,
@@ -122,7 +136,7 @@ begin
 	serial_control : entity work.DataCntrl
 		port map(TXD                => TXD,
 			     RXD                => RXD,
-			     CLK                => CLK,
+			     CLK                => clk,
 			     LEDS               => LEDS, --sig_fake_leds,--
 			     RST                => RST,
 			     SW                 => SW,
@@ -139,8 +153,7 @@ begin
 			     NET_CUR_CMD        => sig_host_state,
 			     OUR_MOVE           => sig_our_move_serial,
 			     GEN_DONE           => sig_serial_send,
-			     
-			     flip_board => sig_flip_board
+			     flip_board         => sig_flip_board
 		);
 
 	process(CLK, RST)

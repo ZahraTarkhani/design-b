@@ -1,7 +1,7 @@
 
 # Period constraint for 50MHz operation
 
-NET "CLK" PERIOD = 20.0ns HIGH 50%;
+NET "CLK" PERIOD = 20.0ns HIGH 40%;
 
 # soldered 50MHz Clock.
 

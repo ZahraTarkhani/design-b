@@ -35,7 +35,7 @@ use ieee.numeric_std.all;
 use work.types.all;
 
 entity move_generator is
-	Port(clk             : in  std_logic;
+	Port(clk        : in  std_logic;
 		 rst             : in  std_logic;
 		 our_move        : in  std_logic;
 
@@ -52,6 +52,7 @@ end move_generator;
 architecture Behavioral of move_generator is
 	type generator_stream is (IDLE, WAIT_FOR_MOVE, PROCESS_MOVE);
 	signal current_state : generator_stream := IDLE;
+
 
 	signal sig_old_our_move       : std_logic := '0';
 	signal sig_current_window_us  : board_window_7;
