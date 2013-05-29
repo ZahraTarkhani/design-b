@@ -40,9 +40,9 @@ char* sendString(char* aString){
     
     do {
       int bytes = 0;
-      bytes = read(serial_fd, &code_buf[got],4-got);//
+      bytes = read(serial_fd, &code_buf[got],2-got);//
       got += bytes;
-    } while(got < 4);
+    } while(got < 2);
     code_buf[4] = 0;
     strcpy(aString, code_buf);
 	//aString[1] = 0;
@@ -113,8 +113,9 @@ void init_serial(){
     */
 
 	//byte d = 
-	char test[1] = "0";
-	//char test[5] = "324SB";
+	//char test[1] = "0";
+	//char test[2] = "2A";
+	char test[10] = "41234567a";
 
 	printf("length %d\n", strlen(test));
     write(serial_fd, test, strlen(test));//strlen(init_code));//test, 1);//
@@ -132,7 +133,8 @@ void init_serial(){
     } while(got < 3);
 	
 	//read(serial_fd, &team_id, 2-got);
-	//read(serial_fd, &team_id, 2);
+	//read(serial_fd, &team_id[0], 1);
+	//read(serial_fd, &team_id[1], 1);
 	//read(serial_fd, &team_id, 1);
 
 	//team_id[1] = 0;
