@@ -94,6 +94,8 @@ begin
         state <= wait_for_rx_start;
         DBOUT <= (others => '0');
         RDA <= '0';
+		  baudrate_counter <= 0;
+		  bit_counter <= 0;
       else
         case state is
           when wait_for_rx_start =>
@@ -177,6 +179,8 @@ begin
         TXD <= '1';
         data_sending_started <= '0';
         wstate <= wait_for_strobe;
+		  wbaudrate_counter <= 0;
+		  wbit_counter <= 0;
       else
         case wstate is
           -- wait until the master asserts valid data

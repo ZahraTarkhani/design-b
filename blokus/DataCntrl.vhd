@@ -2,7 +2,7 @@
 -- main.vhd
 -------------------------------------------------------------------------
 -- Author:  Dan Pederson
---          Copyright 2004 Digilent, Inc.
+				--          Copyright 2004 Digilent, Inc.
 -------------------------------------------------------------------------
 -- Description:  	This file tests the included UART component by 
 --					sending data in serial form through the UART to
@@ -459,10 +459,10 @@ begin
 --		end if;
 --	end process;
 
-	process(CLK, RST, sig_new_data_read, dbOutSig, sig_new_data_written, sig_action_done)
+	process(CLK, RST, sig_new_data_read, dbOutSig, sig_new_data_written, sig_action_done, rdaSig)
 	begin
 		--	
-		if RST = '1' or sig_action_done = '1' or sig_net_rst = '1' then
+		if RST = '1' then
 			--					sig_code_index <= 0;
 			sig_code_array(0) <= "00000000";
 			sig_code_array(1) <= "00000000";
@@ -473,27 +473,44 @@ begin
 			sig_code_array(6) <= "00000000";
 			sig_code_array(7) <= "00000000";
 			sig_code_array(8) <= "00000000";
-		else
-			--					if (CLK = '1' and CLK'Event) then
-			if sig_new_data_read = '1' and sig_new_data_read'Event then
-				sig_code_array(sig_code_index) <= dbOutSig;
-			--					else
+			sig_code_index <= 0;
+		elsif (CLK = '1' and CLK'Event) then
+		
+				if rdaSig = '1' then
+					sig_code_array(sig_code_index) <= dbOutSig;
+					sig_code_index <= sig_code_index + 1;
+--            end if;
+				elsif  sig_action_done = '1' or sig_net_rst = '1' then
+					sig_code_array(0) <= "00000000";
+					sig_code_array(1) <= "00000000";
+					sig_code_array(2) <= "00000000";
+					sig_code_array(3) <= "00000000";
+					sig_code_array(4) <= "00000000";
+					sig_code_array(5) <= "00000000";
+					sig_code_array(6) <= "00000000";
+					sig_code_array(7) <= "00000000";
+					sig_code_array(8) <= "00000000";
+					sig_code_index <= 0;
+				end if;
+				
+				
+				--					else
 			--						sig_code_array(sig_code_index) <= "00000000";
 			--						end if;
-			end if;
+		
 		end if;
 	end process;
-
-	process(sig_new_data_read, sig_read_more, RST, sig_action_done, sig_read_done)
-	begin
-		if RST = '1' or sig_action_done = '1' or sig_net_rst = '1' then --or sig_read_done = '1'
-			sig_code_index <= 0;
-		else
-			if sig_new_data_read = '0' and sig_new_data_read'Event then
-				sig_code_index <= sig_code_index + 1;
-			end if;
-		end if;
-	end process;
+--
+--	process(sig_new_data_read, sig_read_more, RST, sig_action_done, sig_read_done)
+--	begin
+--		if RST = '1' or sig_action_done = '1' or sig_net_rst = '1' then --or sig_read_done = '1'
+--			sig_code_index <= 0;
+--		else
+--			if sig_new_data_read = '0' and sig_new_data_read'Event then
+--				sig_code_index <= sig_code_index + 1;
+--			end if;
+--		end if;
+--	end process;
 
 	process(sig_cur_cmd, sig_move_array, sig_move_index)
 	begin
@@ -556,10 +573,10 @@ begin
 		if (CLK = '1' and CLK'Event) then
 			if RST = '1' then
 				stCur <= stReceive;
-				stGameCur <= stIdle;
+--				stGameCur <= stIdle;
 			else
 				stCur <= stNext;
-				stGameCur <= stGameNext;
+--				stGameCur <= stGameNext;
 			end if;
 		end if;
 	end process;
@@ -608,10 +625,10 @@ begin
 				sig_state_debug      <= "00011000";
 				sig_read_done        <= '1';
 				if sig_write_more = '1' then
-					if GEN_DONE = '1' or sig_team_code = '1' then
-						if CONT = '1' then
+					if CONT = '1' or sig_team_code = '1' then --GEN_DONE = '1'
+						--if CONT = '1' then
 							stNext <= stSend;
-						end if;
+						--end if;
 					end if;
 				else
 					stNext <= stReceive;
