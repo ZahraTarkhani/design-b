@@ -44,7 +44,7 @@ end top;
 
 architecture Behavioral of top is
 	--type mainState is (stIdle, stPlayer, stPlayer2, stOurMove,  stWriteDown);
-	type mainState is (stInit, stIdle, stFindFirstMove, stWriteFirstMove, stWriteFirstMoveAck, stWriteOpponentMove, stWriteOpponentMoveAck, stWriteSecondOpponentMove, stWriteSecondOpponentMoveAck, stFindAMove, stWriteAMove, stWriteAMoveAck, stWriteComputerAck); --
+	type mainState is (stInit, stIdle, stFindFirstMove, stWriteFirstMove, stWriteFirstMoveAck,stWriteFirstComputerAck, stWriteOpponentMove, stWriteOpponentMoveAck, stWriteSecondOpponentMove, stWriteSecondOpponentMoveAck, stFindAMove, stWriteAMove, stWriteAMoveAck, stWriteComputerAck); --
 
 --	signal clk    : std_logic;
 	signal locked : std_logic;
@@ -130,10 +130,11 @@ begin
 			sig_player              => sig_player,
 			sig_write_ready         => sig_write_ready,
 			CONT                    => CONT,
-			LEDS                    => sig_fake_leds, --LEDS,
+			LEDS                    => LEDS,--sig_fake_leds, --
 			SW                      => SW,
 			sig_our_move            => sig_our_move,
 			sig_best_move           => sig_best_move,
+			sig_state_debug =>sig_state_debug,
 			sig_move_generator_done => sig_move_generator_done
 		);
 
@@ -141,7 +142,7 @@ begin
 		port map(TXD                => TXD,
 			     RXD                => RXD,
 			     CLK                => fast_clk,
-			     LEDS               => LEDS, --sig_fake_leds,--
+			     LEDS               => sig_fake_leds,--LEDS, --
 			     RST                => dcm_rst,
 			     SW                 => SW,
 			     CONT               => CONT_NET,
@@ -166,14 +167,14 @@ begin
 			if dcm_rst = '1' or sig_big_reset = '1' then
 				stCur <= stInit;
 			else
-				clk_cnt <= clk_cnt + 1;
+--				clk_cnt <= clk_cnt + 1;
 				--				sig_clk_half <= not sig_clk_half;
 				--				if sig_clk_half = '1' then
-				if clk_cnt = 8 then
+--				if clk_cnt = 8 then
 					stCur       <= stNext;
 					sig_write_d <= sig_write;
-					clk_cnt     <= 0;
-				end if;
+--					clk_cnt     <= 0;
+--				end if;
 			--				end if;
 			end if;
 		end if;
@@ -226,14 +227,22 @@ begin
 				sig_player  <= '0';
 
 				if sig_write_ready = '0' then
-					stNext <= stWriteFirstMoveAck;
+					stNext <= stWriteFirstComputerAck;
 				end if;
+				
+			when stWriteFirstComputerAck =>
+				sig_state_debug <= x"1c";
+				sig_serial_send <= '1';
+				if sig_our_move_serial = '0' then
+					stNext <= stWriteFirstMoveAck;
+				end if;	
+				
 
 			when stWriteFirstMoveAck =>
 				sig_state_debug <= sig_write_ready & sig_host_state & x"5";
-				sig_serial_send <= '1';
+--				sig_serial_send <= '1';
 
-				if sig_write_ready = '1' then -- when 4XXXXYYYY
+				if sig_write_ready = '1' and sig_our_move_serial = '1' then -- when 4XXXXYYYY
 					if sig_host_state = "100" then
 						stNext <= stWriteSecondOpponentMove;
 					elsif sig_host_state = "011" then --when 3XXXX
@@ -251,6 +260,7 @@ begin
 				sig_player  <= '1';
 				sig_write   <= '1';
 				cmd_command <= sig_cmd2;
+
 				if sig_write_ready = '0' then
 					stNext <= stWriteSecondOpponentMoveAck;
 				end if;
@@ -258,6 +268,8 @@ begin
 			when stWriteSecondOpponentMoveAck =>
 				sig_state_debug <= x"07";
 				sig_player      <= '1';
+--				cmd_command <= sig_cmd2;
+
 				if sig_write_ready = '1' then
 					stNext <= stWriteOpponentMove;
 				end if;

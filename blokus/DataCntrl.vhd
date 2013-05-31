@@ -397,14 +397,25 @@ begin
 				sig_net_rst <= '1';
 				sig_our_move  <= '0';
 			when sig_set_init_pos =>
-				sig_our_move <= '1';
+				if sig_read_done = '1' then
+					sig_our_move <= '1';
+				else
+					sig_our_move <= '0';
+				end if;
 				dbInSig      <= sig_move_array(sig_move_index);
 			when sig_new_opp_move =>
-				sig_our_move <= '1';
+				if sig_read_done = '1' then
+					sig_our_move <= '1';
+				else
+					sig_our_move <= '0';
+				end if;				
 				dbInSig      <= sig_move_array(sig_move_index);
 			when sig_new_opp_double_move =>
-				sig_our_move <= '1';
-				sig_opp_turn <= '1';
+				if sig_read_done = '1' then
+					sig_our_move <= '1';
+				else
+					sig_our_move <= '0';
+				end if;				sig_opp_turn <= '1';
 				dbInSig      <= sig_move_array(sig_move_index);
 			when others =>
 				sig_our_move <= '0';
@@ -528,12 +539,14 @@ begin
 				sig_state_debug      <= "10000000";
 				wrSig  <= '1';
 				rdSig <= '1';
+				sig_read_done        <= '1';
 				if tbeSig = '0'  then
 					stNext <= stIdleSend;
 				end if;
 
 			when stIdleSend =>
 				sig_state_debug <= "11000000";
+				sig_read_done        <= '1';
 				if tbeSig = '1' then					
 					if sig_write_more = '1' then
 						stNext          <= stSend;

@@ -46,6 +46,7 @@ entity blokus is
 
 		 sig_our_move            : in  std_logic;
 		 sig_best_move           : out move;
+		 sig_state_debug : in std_logic_vector (7 downto 0);
 		 sig_move_generator_done : out std_logic);
 end blokus;
 
@@ -93,6 +94,7 @@ begin
 			block_x          => sig_block_x,
 			block_y          => sig_block_y,
 			block_value_us   => sig_board_piece_us,
+			sig_state_debug => sig_state_debug,
 			block_value_opp  => sig_board_piece_opp);
 
 	move_generator : entity work.move_generator

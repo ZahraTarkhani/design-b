@@ -56,6 +56,7 @@ entity game_state is
 		block_x          : in  std_logic_vector(3 downto 0);
 		block_y          : in  std_logic_vector(3 downto 0);
 		block_value_us   : out board_piece;
+		sig_state_debug : in std_logic_vector(7 downto 0);
 		block_value_opp  : out board_piece
 	);
 
@@ -64,7 +65,7 @@ architecture Behavioral of game_state is
 	signal curr_board : board := (others => (others => EMPTY));
 	signal opp_board  : board := (others => (others => EMPTY));
 
-	type memory_state is (IDLE, WRITING);
+	type memory_state is (IDLE,IDLE2, IDLE3, WRITING);
 	signal current_state : memory_state := IDLE;
 
 	signal sig_piece_bitmap     : board_window_7               := (others => (others => EMPTY));
@@ -102,7 +103,7 @@ begin
 			case current_state is
 				when IDLE =>
 					write_ready <= '1';
-					if do_write = '1' then --and CONT = '1'
+					if do_write = '1'  then --and CONT = '1'
 						sig_state <= "01";
 
 						if player = '0' then
@@ -116,11 +117,22 @@ begin
 						sig_x                <= x;
 						sig_y                <= y;
 
-						current_state <= WRITING;
+						current_state <= IDLE2;--WRITING;
 						i             <= -3;
 						j             <= -3;
 
 					end if;
+					
+				when IDLE2 =>
+					if CONT = '1' then
+						current_state <= IDLE3;
+					end if;
+				
+				when IDLE3 => 
+					if CONT = '0' then
+						current_state <= WRITING;
+					end if;
+					
 				when WRITING =>
 					if sig_y + i > 0 and sig_y + i <= 14 then
 						if sig_x + j > 0 and sig_x + j <= 14 then
@@ -140,7 +152,7 @@ begin
 						if j < 3 then
 							i <= -3;
 							j <= j + 1;
-						else            --elsif CONT = '0' then --
+						else            --elsif CONT = '0' then --e
 							sig_state     <= "10";
 							current_state <= IDLE;
 							write_ready   <= '1';
@@ -168,6 +180,8 @@ begin
 				LEDS <= "000" & tile;
 			when "0011" =>
 				LEDS <= sig_x & sig_y;
+			when "0111" =>
+				LEDS <= sig_state_debug;
 			when others =>
 				LEDS <= (others => '0');
 		end case;
