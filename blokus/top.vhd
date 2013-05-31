@@ -32,8 +32,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 use work.types.all;
 
 entity top is
-	Port(clk_fast : in  STD_LOGIC;
-		 rst_in   : in  STD_LOGIC;
+	Port(CLK : in  STD_LOGIC;
+		 RST   : in  STD_LOGIC;
 		 TXD      : out STD_LOGIC;
 		 RXD      : in  STD_LOGIC;
 		 LEDS     : out STD_LOGIC_VECTOR(7 downto 0);
@@ -46,9 +46,13 @@ architecture Behavioral of top is
 	--type mainState is (stIdle, stPlayer, stPlayer2, stOurMove,  stWriteDown);
 	type mainState is (stInit, stIdle, stFindFirstMove, stWriteFirstMove, stWriteFirstMoveAck, stWriteOpponentMove, stWriteOpponentMoveAck, stWriteSecondOpponentMove, stWriteSecondOpponentMoveAck, stFindAMove, stWriteAMove, stWriteAMoveAck, stWriteComputerAck); --
 
-	signal clk    : std_logic;
+--	signal clk    : std_logic;
 	signal locked : std_logic;
-	signal rst    : std_logic;
+	signal dcm_rst    : std_logic;
+	signal slow_clk : std_logic;
+	signal fast_clk : std_logic;
+
+	signal sig_clk_fast : std_logic;
 
 	signal stCur  : mainState := stInit;
 	signal stNext : mainState;
@@ -86,13 +90,13 @@ architecture Behavioral of top is
 	signal sig_flip_board : std_logic;
 
 begin
-	rst <= rst_in or not locked;
+	dcm_rst <= RST or not locked;
 	
 	dcm : entity work.dcm_blokus
-		port map(CLKIN_IN        => clk_fast,
-			     RST_IN          => rst,
-			     CLKDV_OUT       => clk,
-			     CLKIN_IBUFG_OUT => open,
+		port map(CLKIN_IN        => CLK,
+			     RST_IN          => RST,
+			     CLKDV_OUT       => slow_clk,
+			     CLKIN_IBUFG_OUT => fast_clk,
 			     CLK0_OUT        => open,
 			     LOCKED_OUT      => locked);
 
@@ -120,7 +124,7 @@ begin
 	blokus : entity work.blokus
 		PORT MAP(
 			reset                   => sig_blokus_rst,
-			clk                     => clk,
+			clk                     => slow_clk,
 			cmd_command             => cmd_command,
 			sig_write               => sig_write_d,
 			sig_player              => sig_player,
@@ -136,9 +140,9 @@ begin
 	serial_control : entity work.DataCntrl
 		port map(TXD                => TXD,
 			     RXD                => RXD,
-			     CLK                => clk,
+			     CLK                => fast_clk,
 			     LEDS               => LEDS, --sig_fake_leds,--
-			     RST                => RST,
+			     RST                => dcm_rst,
 			     SW                 => SW,
 			     CONT               => CONT_NET,
 
@@ -156,10 +160,10 @@ begin
 			     flip_board         => sig_flip_board
 		);
 
-	process(CLK, RST)
+	process(slow_clk, dcm_rst)
 	begin
-		if (CLK = '1' and CLK'Event) then
-			if RST = '1' or sig_big_reset = '1' then
+		if (slow_clk = '1' and slow_clk'Event) then
+			if dcm_rst = '1' or sig_big_reset = '1' then
 				stCur <= stInit;
 			else
 				clk_cnt <= clk_cnt + 1;

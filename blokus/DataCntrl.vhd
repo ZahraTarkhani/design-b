@@ -90,22 +90,22 @@ architecture Behavioral of DataCntrl is
 	--				RS232RefComp.vhd file.
 	--
 	-------------------------------------------------------------------------
-	component RS232RefComp
-		Port(TXD   : out   std_logic := '1'; --
-			 RXD   : in    std_logic;
-			 CLK   : in    std_logic;
-			 DBIN  : in    std_logic_vector(7 downto 0);
-			 DBOUT : out   std_logic_vector(7 downto 0);
-			 RDA   : inout std_logic;
-			 TBE   : inout std_logic := '1';
-			 RD    : in    std_logic;
-			 WR    : in    std_logic;
-			 PE    : out   std_logic;
-			 FE    : out   std_logic;
-			 OE    : out   std_logic;
-			 RSTW   : in    std_logic := '0';
-			 RST   : in    std_logic := '0');
-	end component;
+--	component RS232RefComp
+--		Port(TXD   : out   std_logic := '1'; --
+--			 RXD   : in    std_logic;
+--			 CLK   : in    std_logic;
+--			 DBIN  : in    std_logic_vector(7 downto 0);
+--			 DBOUT : out   std_logic_vector(7 downto 0);
+--			 RDA   : inout std_logic;
+--			 TBE   : inout std_logic := '1';
+--			 RD    : in    std_logic;
+--			 WR    : in    std_logic;
+--			 PE    : out   std_logic;
+--			 FE    : out   std_logic;
+--			 OE    : out   std_logic;
+--			 RSTW   : in    std_logic := '0';
+--			 RST   : in    std_logic := '0');
+--	end component;
 
 --	component timer is
 --		Port(clk       : in  STD_LOGIC;
@@ -128,9 +128,8 @@ architecture Behavioral of DataCntrl is
 	-------------------------------------------------------------------------
 	type mainState is (
 		--stInit,
-		stReceive, stIdleReceive, stSend, stIdleSend, stIdleSend2, stAction);
+		stReceive, stIdleReceive, stSend, stIdleSend,stAction); -- stIdleSend2, 
 		
-	type gameState is (stIdle, stInit, stInitPos, stOpp, stOppDouble, stFinalStop);
 	-------------------------------------------------------------------------
 	--
 	--Title:  Local Signal Declarations
@@ -172,13 +171,12 @@ architecture Behavioral of DataCntrl is
 
 	signal stCur  : mainState := stReceive;
 	signal stNext : mainState;
-	
-	signal stGameCur : gameState := stIdle;
-	signal stGameNext : gameState;
 
 	signal sig_int         : integer;
 	signal sig_dec         : integer;
 	signal sig_test_leds   : std_logic_vector(7 downto 0);
+		signal sig_timer_leds   : std_logic_vector(7 downto 0);
+
 	signal sig_uart_debug  : std_logic_vector(7 downto 0);
 	signal sig_state_debug : std_logic_vector(7 downto 0) := "00000000";
 	signal sig_game_state  : std_logic_vector(7 downto 0) := "00000000";
@@ -207,10 +205,12 @@ architecture Behavioral of DataCntrl is
 	--	signal sig_send_done : std_logic := '0';
 	signal sig_team_code        : std_logic := '0';
 
-
+	
 	signal sig_test_rst : std_logic := '0';
 	signal sig_net_rst : std_logic := '0';
 	signal sig_init_rst : std_logic := '0';
+		signal inc_ack : std_logic := '0';
+	signal winc_ack : std_logic := '0';
 	--to change, state machine states
 	signal sig_cur_cmd               : std_logic_vector(2 downto 0) := "000";
 	--Constants
@@ -269,7 +269,8 @@ begin
 	--				mapped to internal signals in main.
 	--
 	-------------------------------------------------------------------------
-	UART : RS232RefComp port map(TXD   => TXD, --sig_fake_txd,-- 
+	rs232module : entity work.RS232RefComp
+	port map(TXD   => TXD, --sig_fake_txd,-- 
 			                     RXD   => RXD,
 			                     CLK   => CLK,
 			                     DBIN  => dbInSig,
@@ -281,18 +282,50 @@ begin
 			                     PE    => peSig,
 			                     FE    => feSig,
 			                     OE    => oeSig,
-			                     RSTW   => sig_test_rst,
 										RST   => RST); -- RST
 
-	--TXD <= RXD;
+	process(sig_code_array(0))
+	begin
+				if sig_code_array(0) = sig_zero then
+					sig_cur_cmd <= sig_init_game;
+					
+				elsif sig_code_array(0) = sig_nine then
+					sig_cur_cmd    <= sig_final_stop;
+					
+				elsif sig_code_array(0) = sig_two then
+--					if sig_code_array(1) = "00110101" then
+--						flip_board <= '1';
+--					else
+--						flip_board <= '0';
+--					end if;
+					sig_cur_cmd <= sig_set_init_pos;
+					
+				elsif sig_code_array(0) = sig_three then
+					sig_cur_cmd <= sig_new_opp_move;
+					
+				elsif sig_code_array(0) = sig_four then
+					sig_cur_cmd <= sig_new_opp_double_move;
+					
+				else
+					sig_cur_cmd    <= "000";
+				end if;
+	end process;
 
---	MYTIMER : timer port map(
---			clk       => CLK,
---			reset     => RST,
---			time_int  => sig_int,
---			time_dec  => sig_dec,
---			test_leds => sig_test_leds
---		);
+	process(CLK, RST, sig_code_array(0))
+	begin
+	if RST = '1' then 
+		flip_board <= '0';
+	elsif rising_edge(CLK) then
+		if sig_code_array(0) = sig_two then
+			if sig_code_array(1) = "00110101" then
+				flip_board <= '1';
+			else
+				flip_board <= '0';
+			end if;
+		end if;
+	end if;
+	end process;
+
 
 
 	process(sig_cur_cmd, sig_code_index, sig_move_index)
@@ -300,40 +333,40 @@ begin
 		case sig_cur_cmd is
 			when sig_init_game =>
 				sig_read_more <= '0';
-				if sig_move_index = 2 then
+				if sig_move_index >= 2 then
 					sig_write_more <= '0';
 				else
 					sig_write_more <= '1';
 				end if;
 			when sig_set_init_pos =>
-				if sig_move_index = 3 then
+				if sig_move_index >= 3 then
 					sig_write_more <= '0';
 				else
 					sig_write_more <= '1';
 				end if;
-				if sig_code_index = 2 then
+				if sig_code_index >= 1 then
 					sig_read_more <= '0';
 				else
 					sig_read_more <= '1';
 				end if;
 			when sig_new_opp_move =>
-				if sig_move_index = 3 then
+				if sig_move_index >= 3 then
 					sig_write_more <= '0';
 				else
 					sig_write_more <= '1';
 				end if;
-				if sig_code_index = 5 then
+				if sig_code_index >= 4 then
 					sig_read_more <= '0';
 				else
 					sig_read_more <= '1';
 				end if;
 			when sig_new_opp_double_move => 
-				if sig_move_index = 3 then
+				if sig_move_index >= 3 then
 					sig_write_more <= '0';
 				else
 					sig_write_more <= '1';
 				end if;
-				if sig_code_index = 9 then
+				if sig_code_index >= 8 then
 					sig_read_more <= '0';
 				else
 					sig_read_more <= '1';
@@ -347,177 +380,12 @@ begin
 		end case;
 	end process;
 
-	process(CLK, RST, sig_code_array(0))
-	begin
-		if (CLK = '1' and CLK'Event) then
-			if RST = '0' then
-				if sig_code_array(0) = sig_zero then
-					sig_cur_cmd <= sig_init_game;
-					
-				elsif sig_code_array(0) = sig_nine then
-					sig_cur_cmd    <= sig_final_stop;
-					
-				elsif sig_code_array(0) = sig_two then
-					if sig_code_array(1) = "00110101" then
-						flip_board <= '1';
-					else
-						flip_board <= '0';
-					end if;
-					sig_cur_cmd <= sig_set_init_pos;
-					
-				elsif sig_code_array(0) = sig_three then
-					sig_cur_cmd <= sig_new_opp_move;
-					
-				elsif sig_code_array(0) = sig_four then
-					sig_cur_cmd <= sig_new_opp_double_move;
-					
-				else
-					sig_cur_cmd    <= "000";
-				end if;
-			else
-				sig_cur_cmd    <= "000";
-			end if;
-		end if;
-	end process;
-
-
---	process(CLK, RST, sig_code_array(0), sig_code_index, sig_move_index)
---	begin
---		if (CLK = '1' and CLK'Event) then
---			if RST = '0' then
---				if sig_code_array(0) = sig_zero then
---					sig_read_more <= '0';
---					if sig_move_index = 2 then
---						sig_write_more <= '0';
---					else
---						sig_write_more <= '1';
---					end if;
---					sig_cur_cmd <= sig_init_game;
---					
---				elsif sig_code_array(0) = sig_nine then
---					sig_read_more  <= '0';
---					sig_write_more <= '0';
---					sig_cur_cmd    <= sig_final_stop;
---				elsif sig_code_array(0) = sig_two then
---					--change
---					--sig_write_more <= '0';
---					if sig_move_index = 3 then
---						sig_write_more <= '0';
---					else
---						sig_write_more <= '1';
---					end if;
---					if sig_code_index = 1 then
---						sig_read_more <= '0';
---					else
---						sig_read_more <= '1';
---					end if;
---
---					if sig_code_array(1) = "00110101" then
---						flip_board <= '1';
---					else
---						flip_board <= '0';
---					end if;
---
---					sig_cur_cmd <= sig_set_init_pos;
---				elsif sig_code_array(0) = sig_three then
---					--					sig_write_more <= '0';
---					if sig_move_index = 3 then
---						sig_write_more <= '0';
---					else
---						sig_write_more <= '1';
---					end if;
---					if sig_code_index = 4 then
---						sig_read_more <= '0';
---					else
---						sig_read_more <= '1';
---					end if;
---					sig_cur_cmd <= sig_new_opp_move;
---				elsif sig_code_array(0) = sig_four then
---					--					sig_write_more <= '0';
---					if sig_move_index = 3 then
---						sig_write_more <= '0';
---					else
---						sig_write_more <= '1';
---					end if;
---					if sig_code_index = 8 then
---						sig_read_more <= '0';
---					else
---						sig_read_more <= '1';
---					end if;
---					sig_cur_cmd <= sig_new_opp_double_move;
---				else
---					sig_read_more  <= '0';
---					sig_write_more <= '0';
---					sig_cur_cmd    <= "000";
---				--		sig_big_debug <= '1';
---				end if;
---			else
---				sig_read_more  <= '0';
---				sig_write_more <= '0';
---				sig_cur_cmd    <= "000";
---			end if;
---		end if;
---	end process;
-
-	process(CLK, RST, sig_new_data_read, dbOutSig, sig_new_data_written, sig_action_done, rdaSig)
-	begin
-		--	
-		if RST = '1' then
-			--					sig_code_index <= 0;
-			sig_code_array(0) <= "00000000";
-			sig_code_array(1) <= "00000000";
-			sig_code_array(2) <= "00000000";
-			sig_code_array(3) <= "00000000";
-			sig_code_array(4) <= "00000000";
-			sig_code_array(5) <= "00000000";
-			sig_code_array(6) <= "00000000";
-			sig_code_array(7) <= "00000000";
-			sig_code_array(8) <= "00000000";
-			sig_code_index <= 0;
-		elsif (CLK = '1' and CLK'Event) then
-		
-				if rdaSig = '1' then
-					sig_code_array(sig_code_index) <= dbOutSig;
-					sig_code_index <= sig_code_index + 1;
---            end if;
-				elsif  sig_action_done = '1' or sig_net_rst = '1' then
-					sig_code_array(0) <= "00000000";
-					sig_code_array(1) <= "00000000";
-					sig_code_array(2) <= "00000000";
-					sig_code_array(3) <= "00000000";
-					sig_code_array(4) <= "00000000";
-					sig_code_array(5) <= "00000000";
-					sig_code_array(6) <= "00000000";
-					sig_code_array(7) <= "00000000";
-					sig_code_array(8) <= "00000000";
-					sig_code_index <= 0;
-				end if;
-				
-				
-				--					else
-			--						sig_code_array(sig_code_index) <= "00000000";
-			--						end if;
-		
-		end if;
-	end process;
---
---	process(sig_new_data_read, sig_read_more, RST, sig_action_done, sig_read_done)
---	begin
---		if RST = '1' or sig_action_done = '1' or sig_net_rst = '1' then --or sig_read_done = '1'
---			sig_code_index <= 0;
---		else
---			if sig_new_data_read = '0' and sig_new_data_read'Event then
---				sig_code_index <= sig_code_index + 1;
---			end if;
---		end if;
---	end process;
-
 	process(sig_cur_cmd, sig_move_array, sig_move_index)
 	begin
 		sig_opp_turn  <= '0';
 		sig_net_rst <= '0';
 		sig_team_code <= '0';
-
+		sig_init_rst <= '0';
 		case sig_cur_cmd is
 			when sig_init_game =>
 				dbInSig       <= sig_team_array(sig_move_index);
@@ -531,7 +399,6 @@ begin
 			when sig_set_init_pos =>
 				sig_our_move <= '1';
 				dbInSig      <= sig_move_array(sig_move_index);
-
 			when sig_new_opp_move =>
 				sig_our_move <= '1';
 				dbInSig      <= sig_move_array(sig_move_index);
@@ -539,57 +406,79 @@ begin
 				sig_our_move <= '1';
 				sig_opp_turn <= '1';
 				dbInSig      <= sig_move_array(sig_move_index);
-
 			when others =>
 				sig_our_move <= '0';
 				dbInSig      <= (others => '0');
 		end case;
 	end process;
 
-	process(sig_new_data_written, RST, sig_action_done)
+
+
+	process(CLK, RST, sig_new_data_read, dbOutSig,  sig_action_done, sig_net_rst, rdaSig)
 	begin
-		if RST = '1' or sig_action_done = '1' or sig_net_rst = '1' then
-			sig_move_index <= 0;
-		else
-			if sig_new_data_written = '0' and sig_new_data_written'Event then
-				sig_move_index <= sig_move_index + 1;
-			end if;
+		--	
+		if RST = '1' then
+			sig_code_array(0) <= "00000000";
+			sig_code_array(1) <= "00000000";
+			sig_code_array(2) <= "00000000";
+			sig_code_array(3) <= "00000000";
+			sig_code_array(4) <= "00000000";
+			sig_code_array(5) <= "00000000";
+			sig_code_array(6) <= "00000000";
+			sig_code_array(7) <= "00000000";
+			sig_code_array(8) <= "00000000";
+			sig_code_index <= 0;
+		elsif (CLK = '1' and CLK'Event) then
+				if  sig_action_done = '1' or sig_net_rst = '1' then
+					sig_code_array(0) <= "00000000";
+					sig_code_array(1) <= "00000000";
+					sig_code_array(2) <= "00000000";
+					sig_code_array(3) <= "00000000";
+					sig_code_array(4) <= "00000000";
+					sig_code_array(5) <= "00000000";
+					sig_code_array(6) <= "00000000";
+					sig_code_array(7) <= "00000000";
+					sig_code_array(8) <= "00000000";
+					sig_code_index <= 0;
+					inc_ack <= '0';
+				elsif rdaSig = '1'  then
+					sig_code_array(sig_code_index) <= dbOutSig;
+					inc_ack <= '1';
+				elsif rdaSig = '0' and inc_ack = '1' then
+					sig_code_index <= sig_code_index + 1;
+					inc_ack <= '0';
+				end if;
 		end if;
 	end process;
 
-	-------------------------------------------------------------------------
-	--
-	--Title: Main State Machine controller 
-	--
-	--Description:	This process takes care of the Main state machine 
-	--				movement.  It causes the next state to be evaluated on 
-	--				each rising edge of CLK.  If the RST signal is strobed, 
-	--				the state is changed to the default starting state, which 
-	--				is stReceive.
-	--
-	-------------------------------------------------------------------------
+	process(CLK, RST, tbeSig, sig_action_done, sig_net_rst)
+	begin
+	if RST = '1' then
+		sig_move_index <= 0;
+	elsif rising_edge(CLK) then
+		if sig_action_done = '1' or sig_net_rst = '1' then
+			sig_move_index <= 0;
+			winc_ack <= '0';
+		elsif tbeSig = '0' then
+			winc_ack <= '1';
+		elsif tbeSig = '1' and winc_ack = '1' then
+			sig_move_index <= sig_move_index + 1;
+			winc_ack <= '0';
+		end if;
+	end if;
+	end process;
+
 	process(CLK, RST)
 	begin
 		if (CLK = '1' and CLK'Event) then
 			if RST = '1' then
 				stCur <= stReceive;
---				stGameCur <= stIdle;
 			else
 				stCur <= stNext;
---				stGameCur <= stGameNext;
 			end if;
 		end if;
 	end process;
-	-------------------------------------------------------------------------
-	--
-	--Title: Main State Machine 
-	--
-	--Description:	This process defines the next state logic for the Main
-	--				state machine.  The main state machine controls the data
-	--				flow for this testing program in order to send and 
-	--				receive data.
-	--
-	-------------------------------------------------------------------------
+
 	process(stCur, rdaSig, dbOutsig, tbeSig, CONT, sig_cur_cmd, sig_read_more, sig_write_more, GEN_DONE, sig_team_code)
 	begin
 		sig_state_debug      <= "00000000";
@@ -614,6 +503,7 @@ begin
 				sig_state_debug      <= "00000011";
 				rdSig                <= '1';
 				if rdaSig = '0' then  
+
 					if sig_read_more = '1' then
 						stNext <= stReceive;
 					else
@@ -625,10 +515,10 @@ begin
 				sig_state_debug      <= "00011000";
 				sig_read_done        <= '1';
 				if sig_write_more = '1' then
-					if CONT = '1' or sig_team_code = '1' then --GEN_DONE = '1'
-						--if CONT = '1' then
+					if GEN_DONE = '1' or sig_team_code = '1'  then --GEN_DONE = '1' or sig_team_code = '1'
+						if CONT = '1' then
 							stNext <= stSend;
-						--end if;
+						end if;
 					end if;
 				else
 					stNext <= stReceive;
@@ -636,34 +526,22 @@ begin
 
 			when stSend =>
 				sig_state_debug      <= "10000000";
+				wrSig  <= '1';
+				rdSig <= '1';
 				if tbeSig = '0'  then
 					stNext <= stIdleSend;
-
 				end if;
 
 			when stIdleSend =>
 				sig_state_debug <= "11000000";
-				wrSig  <= '1';
-				
-
-				if tbeSig = '1' then
---					wrSig                <= '0';
-					
-					stNext <= stIdleSend2;
---				else
---					wrSig           <= '1';
+				if tbeSig = '1' then					
+					if sig_write_more = '1' then
+						stNext          <= stSend;
+					else
+						stNext          <= stReceive;
+						sig_action_done <= '1';
+					end if;
 				end if;
-			when stIdleSend2 =>
-				sig_new_data_written <= '1';
-
-				sig_state_debug <= "11100000";
-				if sig_write_more = '1' then
-					stNext          <= stSend;
-				else
-					stNext          <= stReceive;
-					sig_action_done <= '1';
-				end if;
-				
 		end case;
 	end process;
 
@@ -671,30 +549,42 @@ begin
 	sig_game_state <= sig_cur_cmd & sig_our_move & GEN_DONE & rdaSig & sig_read_more & sig_write_more;
 
 
+
+	mytimer : entity work.timer
+	port map		(clk      => CLK,
+			 reset     => RST,
+			 time_int  => open,
+			 time_dec  => open, 
+			 test_leds => sig_timer_leds
+		);
+
+
 	-- led debugging
 	process(SW, sig_uart_debug, dbInSig, dbOutSig, sig_state_debug, sig_game_state, sig_code_array)
 	begin
 		case SW is
+			when "0000" => LEDS <= sig_game_state;--conv_std_logic_vector(sig_move_index, 8);
 			when "0001" => LEDS <= conv_std_logic_vector(sig_code_index, 8); -- UART signals (see details above in signal assignments)
-			when "0011" => LEDS <= sig_state_debug;
-			when "0010" => LEDS <= dbInSig;
+			when "0010" => LEDS <= sig_state_debug;
+--			when "0010" => LEDS <= dbInSig;
 
-			when "1000" => LEDS <= sig_game_state;
-			when "0000" => LEDS <= conv_std_logic_vector(sig_move_index, 8);
---			when "1001" => LEDS <= sig_move_array(0);
---			when "1010" => LEDS <= sig_move_array(1);
---			when "1011" => LEDS <= sig_move_array(2);
---			when "1100" => LEDS <= sig_move_array(3);
-			when "1001" => LEDS <= sig_code_array(0);
-			when "1010" => LEDS <= sig_code_array(1);
-			when "1011" => LEDS <= sig_code_array(2);
-			when "1100" => LEDS <= sig_code_array(3);
-			when "1101" => LEDS <= sig_code_array(4);
-			when "1110" => LEDS <= sig_code_array(5);
-			when "1111" => LEDS <= sig_code_array(6);
-			when "0100" => LEDS <= sig_code_array(7); --hex_debug.x & hex_debug.y;--sig_test_leds;
-			when "0101" => LEDS <= sig_code_array(8); --hex_debug.name & hex_debug.rotation;--conv_std_logic_vector(sig_move_index, 8);
-			when "0111" => LEDS <= blokus_state_debug;
+--			when "1000" => LEDS <= sig_game_state;
+			when "0100" => LEDS <= sig_move_array(0);
+			when "0101" => LEDS <= sig_move_array(1);
+			when "0110" => LEDS <= sig_move_array(2);
+			when "0011" => LEDS <= sig_move_array(3);
+
+			when "1000" => LEDS <= sig_code_array(0);
+			when "1001" => LEDS <= sig_code_array(1);
+			when "1010" => LEDS <= sig_code_array(2);
+			when "1011" => LEDS <= sig_code_array(3);
+			when "1100" => LEDS <= sig_code_array(4);
+			when "1101" => LEDS <= sig_code_array(5);
+			when "1110" => LEDS <= sig_code_array(6);
+			when "1111" => LEDS <= sig_code_array(7);
+			when "0111" => LEDS <= sig_code_array(8); --hex_debug.x & hex_debug.y;--sig_test_leds;
+			--hex_debug.name & hex_debug.rotation;--conv_std_logic_vector(sig_move_index, 8);
+--			when "0111" => LEDS <= sig_timer_leds;
 			when others => LEDS <= dbOutSig;
 		end case;
 	end process;
