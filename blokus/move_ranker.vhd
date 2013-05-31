@@ -21,14 +21,14 @@ architecture structural of move_ranker is
 	constant our_active_squeres_weighting      : integer := 12;
 	constant opp_active_squeres_weighting      : integer := 12;
 	constant our_unblockable_squeres_weighting : integer := 24;
-	constant opp_unblockable_squeres_weighting : integer := 24;
+	constant opp_unblockable_squeres_weighting : integer := -24;
 
 	signal peice_count             : integer range 0 to 5;
-	signal overlap_count           : integer range 0 to 12;
-	signal our_active_squeres      : integer range -12 to 7;
+	signal overlap_count           : integer range 0 to 15;
+	signal our_active_squeres      : integer range 0 to 8;
 	signal opp_active_squeres      : integer range 0 to 5;
-	signal our_unblockable_squeres : integer range -12 to 7;
-	signal opp_unblockable_squeres : integer range -5 to 0;
+	signal our_unblockable_squeres : integer range 0 to 8;
+	signal opp_unblockable_squeres : integer range 0 to 5;
 
 	signal move_window_us  : board_window_7;
 	signal move_window_opp : board_window_7;
@@ -79,8 +79,8 @@ begin
 			for j in 0 to 6 loop
 				if move_window_us(i, j) = ACTIVE and our_window(i, j) = EMPTY then
 					count := count + 1;
-				elsif move_window_us(i, j) = OCCUPI and our_window(i, j) = ACTIVE then
-					count := count - 1;
+--				elsif move_window_us(i, j) = OCCUPI and our_window(i, j) = ACTIVE then
+--					count := count - 1;
 				end if;
 			end loop;
 		end loop;
@@ -114,8 +114,8 @@ begin
 			for j in 0 to 6 loop
 				if move_window_us(i, j) = ACTIVE and opponent_window(i, j) = OCCUPI and our_window(i, j) = EMPTY then
 					count := count + 1;
-				elsif move_window_us(i, j) = OCCUPI and opponent_window(i, j) = OCCUPI and our_window(i, j) = ACTIVE then
-					count := count - 1;
+--				elsif move_window_us(i, j) = OCCUPI and opponent_window(i, j) = OCCUPI and our_window(i, j) = ACTIVE then
+--					count := count - 1;
 				end if;
 			end loop;
 		end loop;
@@ -132,7 +132,7 @@ begin
 			for j in 0 to 6 loop
 				if opponent_window(i, j) = ACTIVE and move_window_opp(i, j) /= OCCUPI and
 						move_window_us(i, j) = OCCUPI and our_window(i, j) /= OCCUPI then
-					count := count - 1;
+					count := count + 1;
 				end if;
 			end loop;
 		end loop;

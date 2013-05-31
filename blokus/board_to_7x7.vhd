@@ -85,7 +85,7 @@ begin
 					cell_x        <= 0;
 					cell_y        <= 0;
 				when NEW_ROW =>
-					stream_window_sig_us(cell_y, cell_x) <= board_value_us;
+					stream_window_sig_us(cell_y, cell_x)  <= board_value_us;
 					stream_window_sig_opp(cell_y, cell_x) <= board_value_opp;
 
 					if cell_x < 6 then
@@ -112,11 +112,11 @@ begin
 					if cell_y < 7 then
 						-- do bitshift
 						for i in 1 to 6 loop
-							stream_window_sig_us(cell_y, i - 1) <= stream_window_sig_us(cell_y, i);
+							stream_window_sig_us(cell_y, i - 1)  <= stream_window_sig_us(cell_y, i);
 							stream_window_sig_opp(cell_y, i - 1) <= stream_window_sig_opp(cell_y, i);
 						end loop;
 
-						stream_window_sig_us(cell_y, 6) <= board_value_us;
+						stream_window_sig_us(cell_y, 6)  <= board_value_us;
 						stream_window_sig_opp(cell_y, 6) <= board_value_opp;
 
 						cell_y <= cell_y + 1;
@@ -159,14 +159,14 @@ begin
 		end loop;
 	end process;
 
-	board_x <= conv_std_logic_vector(cell_x + stream_loc_x - 2, 4);
-	board_y <= conv_std_logic_vector(cell_y + stream_loc_y - 2, 4);
+	board_x <= conv_std_logic_vector(cell_x + stream_loc_x - 3, 4);
+	board_y <= conv_std_logic_vector(cell_y + stream_loc_y - 3, 4);
 
 	stream_x <= conv_std_logic_vector(stream_loc_x, 4);
 	stream_y <= conv_std_logic_vector(stream_loc_y, 4);
 
-	stream_window_us <= stream_window_sig_us;
+	stream_window_us  <= stream_window_sig_us;
 	stream_window_opp <= stream_window_sig_opp;
-	stream_ready     <= sig_stream_ready;
+	stream_ready      <= sig_stream_ready;
 
 end architecture Behavioral;
