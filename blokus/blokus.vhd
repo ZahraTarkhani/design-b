@@ -97,7 +97,7 @@ begin
 
 	move_generator : entity work.move_generator
 		port map(
-			clk        => clk,
+			clk             => clk,
 			rst             => reset,
 			our_move        => sig_our_move,
 			board_x         => sig_block_x,
