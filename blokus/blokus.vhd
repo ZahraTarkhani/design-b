@@ -62,6 +62,8 @@ architecture structural of blokus is
 	signal sig_board_piece_opp : board_piece;
 
 	signal sig_pieces_on_board : std_logic_vector(20 downto 0);
+	
+	signal sig_best_move_debug : move;
 
 begin
 	--cmd_command <= "0101010110010000";  --55r0
@@ -95,7 +97,10 @@ begin
 			block_y          => sig_block_y,
 			block_value_us   => sig_board_piece_us,
 			sig_state_debug => sig_state_debug,
+			best_move => sig_best_move_debug,
 			block_value_opp  => sig_board_piece_opp);
+
+	sig_best_move <= sig_best_move_debug;
 
 	move_generator : entity work.move_generator
 		port map(
@@ -107,7 +112,7 @@ begin
 			board_value_us  => sig_board_piece_us,
 			board_value_opp => sig_board_piece_opp,
 			pieces_on_board => sig_pieces_on_board,
-			best_move       => sig_best_move,
+			best_move       => sig_best_move_debug,
 			done            => sig_move_generator_done);
 
 end structural;

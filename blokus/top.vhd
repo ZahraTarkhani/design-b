@@ -126,7 +126,7 @@ begin
 			reset                   => sig_blokus_rst,
 			clk                     => slow_clk,
 			cmd_command             => cmd_command,
-			sig_write               => sig_write_d,
+			sig_write               => sig_write,
 			sig_player              => sig_player,
 			sig_write_ready         => sig_write_ready,
 			CONT                    => CONT,
@@ -134,7 +134,7 @@ begin
 			SW                      => SW,
 			sig_our_move            => sig_our_move,
 			sig_best_move           => sig_best_move,
-			sig_state_debug =>sig_state_debug,
+			sig_state_debug 			=> sig_state_debug,
 			sig_move_generator_done => sig_move_generator_done
 		);
 
@@ -167,14 +167,14 @@ begin
 			if dcm_rst = '1' or sig_big_reset = '1' then
 				stCur <= stInit;
 			else
---				clk_cnt <= clk_cnt + 1;
+				clk_cnt <= clk_cnt + 1;
 				--				sig_clk_half <= not sig_clk_half;
 				--				if sig_clk_half = '1' then
---				if clk_cnt = 8 then
+				if clk_cnt = 8 then
 					stCur       <= stNext;
-					sig_write_d <= sig_write;
---					clk_cnt     <= 0;
---				end if;
+--					sig_write_d <= sig_write;
+					clk_cnt     <= 0;
+				end if;
 			--				end if;
 			end if;
 		end if;
@@ -213,26 +213,31 @@ begin
 				sig_our_move    <= '1';
 				sig_state_debug <= x"03";
 
-				if sig_move_generator_done = '1' then --or times up
+				if sig_move_generator_done = '1' and sig_write_ready = '1' then --or times up
 					stNext <= stWriteFirstMove;
 				--					 else 
 				--						stNext <= stFindFirstMove;
 				end if;
 
 			when stWriteFirstMove =>    -- add new signal sig_host_state
-				sig_write       <= '1';
 				sig_state_debug <= x"04";
+				
+--				sig_our_move    <= '1';
 
-				cmd_command <= sig_best_move;
-				sig_player  <= '0';
+				sig_write       <= '1';
+--				sig_player  	 <= '0';
+				cmd_command 	 <= sig_best_move;
 
 				if sig_write_ready = '0' then
-					stNext <= stWriteFirstComputerAck;
+					stNext <= stWriteFirstComputerAck;--stWriteFirstMoveAck;--
 				end if;
 				
 			when stWriteFirstComputerAck =>
 				sig_state_debug <= x"1c";
 				sig_serial_send <= '1';
+--				sig_our_move    <= '1';
+--				cmd_command <= sig_best_move;
+
 				if sig_our_move_serial = '0' then
 					stNext <= stWriteFirstMoveAck;
 				end if;	
@@ -241,6 +246,7 @@ begin
 			when stWriteFirstMoveAck =>
 				sig_state_debug <= sig_write_ready & sig_host_state & x"5";
 --				sig_serial_send <= '1';
+--				sig_our_move    <= '1';
 
 				if sig_write_ready = '1' and sig_our_move_serial = '1' then -- when 4XXXXYYYY
 					if sig_host_state = "100" then

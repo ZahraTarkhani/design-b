@@ -57,6 +57,7 @@ entity game_state is
 		block_y          : in  std_logic_vector(3 downto 0);
 		block_value_us   : out board_piece;
 		sig_state_debug : in std_logic_vector(7 downto 0);
+		best_move : in move;
 		block_value_opp  : out board_piece
 	);
 
@@ -72,13 +73,19 @@ architecture Behavioral of game_state is
 	signal sig_piece_bitmap_opp : board_window_7               := (others => (others => EMPTY));
 	signal sig_x                : std_logic_vector(3 downto 0) := (others => '0');
 	signal sig_y                : std_logic_vector(3 downto 0) := (others => '0');
+	
+	signal debug_sig_write : std_logic;
 
-	signal sig_state : std_logic_vector(1 downto 0);
+	signal sig_state : std_logic_vector(3 downto 0);
+	
+	signal hack_count : integer := 0;
+	
+	constant hack_max : integer := 300;
 
 	signal i : integer := -3;
 	signal j : integer := -3;
 begin
-	place_piece : process(clk, rst) is
+	place_piece : process(clk, rst, x, y, tile, piece_bitmap, piece_bitmap_opp, current_state) is
 	begin
 		if rst = '1' then
 			for reset_i in 0 to 13 loop
@@ -95,45 +102,73 @@ begin
 
 			i         <= -3;
 			j         <= -3;
-			sig_state <= "10";
+--			sig_state <= "10";
 
 			current_state <= IDLE;
 		elsif rising_edge(clk) then
 			--			sig_state <= "00";
 			case current_state is
 				when IDLE =>
+					sig_state <= "0001";
 					write_ready <= '1';
-					if do_write = '1'  then --and CONT = '1'
-						sig_state <= "01";
+					debug_sig_write <= '0';
+					if do_write = '1' then --and CONT = '1'
+--						sig_state <= "0001";
+
 
 						if player = '0' then
 							pieces_on_board(conv_integer(tile)) <= '1';
 						end if;
 
-						write_ready <= '0';
 
 						sig_piece_bitmap     <= piece_bitmap;
 						sig_piece_bitmap_opp <= piece_bitmap_opp;
 						sig_x                <= x;
 						sig_y                <= y;
-
-						current_state <= IDLE2;--WRITING;
+						debug_sig_write <= do_write;
 						i             <= -3;
 						j             <= -3;
 
+
+
+
+--						if hack_count >= hack_max then
+--							current_state <= WRITING;
+----							hack_count <= 0;
+--						else
+--							hack_count <= hack_count + 1;
+--						end if;
+--						
+--					if CONT = '1' then
+--						current_state <= IDLE3;
+--					end if;
+
+						current_state <= WRITING;-- IDLE2;--
+--					else 
+--						hack_count <= 0;
 					end if;
 					
 				when IDLE2 =>
+					sig_state <= "0010";
+					
+
+					write_ready <= '0';
 					if CONT = '1' then
 						current_state <= IDLE3;
 					end if;
 				
 				when IDLE3 => 
+					sig_state <= "0100";
+					write_ready <= '0';
+
 					if CONT = '0' then
 						current_state <= WRITING;
 					end if;
 					
 				when WRITING =>
+					sig_state     <= "1000";
+
+					write_ready <= '0';
 					if sig_y + i > 0 and sig_y + i <= 14 then
 						if sig_x + j > 0 and sig_x + j <= 14 then
 							if sig_piece_bitmap(i + 3, j + 3) > curr_board(conv_integer(sig_y + i - 1), conv_integer(sig_x + j - 1)) then
@@ -153,7 +188,6 @@ begin
 							i <= -3;
 							j <= j + 1;
 						else            --elsif CONT = '0' then --e
-							sig_state     <= "10";
 							current_state <= IDLE;
 							write_ready   <= '1';
 						end if;
@@ -173,7 +207,7 @@ begin
 	begin
 		case (SW) is
 			when "0000" =>
-				LEDS <= "000000" & sig_state;
+				LEDS <=  do_write & debug_sig_write & "00" & sig_state;
 			when "0001" =>
 				LEDS <= x & y;
 			when "0010" =>
@@ -182,6 +216,8 @@ begin
 				LEDS <= sig_x & sig_y;
 			when "0111" =>
 				LEDS <= sig_state_debug;
+			when "1111" =>
+				LEDS <= best_move.x & best_move.y;
 			when others =>
 				LEDS <= (others => '0');
 		end case;

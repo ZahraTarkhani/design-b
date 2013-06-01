@@ -32,8 +32,8 @@ begin
 		if flip_board = '0' then
 			hex_command_flipped <= hex_command;
 		else
-			hex_command_flipped.x        <= 14 - hex_command.x;
-			hex_command_flipped.y        <= 14 - hex_command.y;
+			hex_command_flipped.x        <= 15 - hex_command.x;
+			hex_command_flipped.y        <= 15 - hex_command.y;
 			hex_command_flipped.name     <= hex_command.name;
 			hex_command_flipped.rotation <= flips(conv_integer(hex_command.rotation));
 		end if;
@@ -41,7 +41,7 @@ begin
 
 	process(hex_command_flipped)
 	begin
-		if hex_command_flipped.x = 0 and hex_command_flipped.y = 0 then
+		if hex_command.x = 0 and hex_command.y = 0 then
 			-- pass (0000)
 			ascii_command <= x"30303030";
 		else

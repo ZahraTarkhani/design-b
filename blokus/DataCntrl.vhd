@@ -380,7 +380,7 @@ begin
 		end case;
 	end process;
 
-	process(sig_cur_cmd, sig_move_array, sig_move_index)
+	process(sig_cur_cmd, sig_move_array, sig_move_index, sig_read_done)
 	begin
 		sig_opp_turn  <= '0';
 		sig_net_rst <= '0';
@@ -527,9 +527,9 @@ begin
 				sig_read_done        <= '1';
 				if sig_write_more = '1' then
 					if GEN_DONE = '1' or sig_team_code = '1'  then --GEN_DONE = '1' or sig_team_code = '1'
-						if CONT = '1' then
+--						if CONT = '1' then
 							stNext <= stSend;
-						end if;
+--						end if;
 					end if;
 				else
 					stNext <= stReceive;

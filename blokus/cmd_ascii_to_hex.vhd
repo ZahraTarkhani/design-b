@@ -60,8 +60,8 @@ begin
 		if flip_board = '0' then
 			hex_command_flipped <= hex_command;
 		else
-			hex_command_flipped.x        <= 14 - hex_command.x;
-			hex_command_flipped.y        <= 14 - hex_command.y;
+			hex_command_flipped.x        <= 15 - hex_command.x;
+			hex_command_flipped.y        <= 15 - hex_command.y;
 			hex_command_flipped.name     <= hex_command.name;
 			hex_command_flipped.rotation <= flips(conv_integer(hex_command.rotation));
 		end if;

@@ -181,6 +181,30 @@ move decode_code(char* code){
   return m;
 }
 
+
+int cheat(int player, int turn, char * code){
+  move m;
+  for (m.y=1; m.y<=15; m.y++){
+    for (m.x=1; m.x<15; m.x++){
+      for (m.piece=0; m.piece<21; m.piece++){
+        for(m.rotate=0; m.rotate<8; m.rotate++){
+          if(check_move(player, turn, m) == 0){
+            if (show_hint){
+              sprintf(code, "%c%c%c%c\n", 
+                     ((m.x<10) ? m.x+'0' : m.x+'a'-10),
+                     ((m.y<10) ? m.y+'0' : m.y+'a'-10),
+                     m.piece+'a', m.rotate+'0');
+            }
+            return TRUE;
+          }
+        }
+      }
+    }
+  }
+  return FALSE;
+}
+
+
 char* prompt(int p, char* code, char* prev_code, int must_pass, int turn){
 #ifdef DEBUG
   printf("turn %d\n", turn);
@@ -196,7 +220,11 @@ char* prompt(int p, char* code, char* prev_code, int must_pass, int turn){
       return code;
     } else {
       printf("Player %d:", p);
+
       fgets(code, 6, stdin);
+	  if(code[0] == '\n')
+		cheat(p, turn, code);
+
       if(feof(stdin)){
 	code[0] = 0;
 	return NULL;
@@ -372,6 +400,7 @@ int check_possibility(int player, int turn){
   }
   return FALSE;
 }
+
 
 int next_player(player){
   if(player == 1) return 2;
@@ -572,7 +601,7 @@ int main(int argc, char* argv[]){
     if((e = check_move(player, turn, m)) != 0){
       show_error(e);
       printf("Player %d //lost the game.\n", player);
-   //   break;
+      break;
     }
   
     // OK, now place the move
