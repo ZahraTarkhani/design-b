@@ -18,27 +18,27 @@ end entity move_ranker;
 architecture structural of move_ranker is
 	constant peice_count_weighting             : integer := 7;
 	constant overlap_count_weighting           : integer := 7;
-	constant our_active_squeres_weighting      : integer := 12;
-	constant opp_active_squeres_weighting      : integer := 12;
-	constant our_unblockable_squeres_weighting : integer := 24;
-	constant opp_unblockable_squeres_weighting : integer := -24;
+	constant our_active_squares_weighting      : integer := 12;
+	constant opp_active_squares_weighting      : integer := 12;
+	constant our_unblockable_squares_weighting : integer := 24;
+	constant opp_unblockable_squares_weighting : integer := -24;
 
 	signal peice_count             : integer range 0 to 5;
 	signal overlap_count           : integer range 0 to 15;
-	signal our_active_squeres      : integer range 0 to 8;
-	signal opp_active_squeres      : integer range 0 to 5;
-	signal our_unblockable_squeres : integer range 0 to 8;
-	signal opp_unblockable_squeres : integer range 0 to 5;
+	signal our_active_squares      : integer range 0 to 8;
+	signal opp_active_squares      : integer range 0 to 5;
+	signal our_unblockable_squares : integer range 0 to 8;
+	signal opp_unblockable_squares : integer range 0 to 5;
 
 	signal move_window_us  : board_window_7;
 	signal move_window_opp : board_window_7;
 begin
 	rating <= (peice_count * peice_count_weighting) +
 			(overlap_count * overlap_count_weighting) +
-			(our_active_squeres * our_active_squeres_weighting) +
-			(opp_active_squeres * opp_active_squeres_weighting) +
-			(our_unblockable_squeres * our_unblockable_squeres_weighting) + 
-			(opp_unblockable_squeres * opp_unblockable_squeres_weighting);
+			(our_active_squares * our_active_squares_weighting) +
+			(opp_active_squares * opp_active_squares_weighting) +
+			(our_unblockable_squares * our_unblockable_squares_weighting) + 
+			(opp_unblockable_squares * opp_unblockable_squares_weighting);
 
 	-- count the number of blocks in a peice
 	process(move_bitmap)
@@ -85,11 +85,11 @@ begin
 			end loop;
 		end loop;
 
-		our_active_squeres <= count;
+		our_active_squares <= count;
 	end process;
 
 
-	-- count the number of active squeres our opponet looses
+	-- count the number of active squares our opponent loses
 	process(move_window_opp, opponent_window)
 		variable count : integer := 0;
 	begin
@@ -102,7 +102,7 @@ begin
 			end loop;
 		end loop;
 
-		opp_active_squeres <= count;
+		opp_active_squares <= count;
 	end process;
 
 	-- count the number of un-blockable squere we gain
@@ -120,10 +120,10 @@ begin
 			end loop;
 		end loop;
 
-		our_unblockable_squeres <= count;
+		our_unblockable_squares <= count;
 	end process;
 
-	-- count the number of unblockbale squeres the oponent looses
+	-- count the number of unblockable squares the oponent loses
 	process(move_window_us, move_window_opp, our_window, opponent_window)
 		variable count : integer := 0;
 	begin
@@ -137,7 +137,7 @@ begin
 			end loop;
 		end loop;
 
-		opp_unblockable_squeres <= count;
+		opp_unblockable_squares <= count;
 	end process;
 
 	marker : entity work.piece_bitmap_marker
