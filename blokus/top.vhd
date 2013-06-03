@@ -51,7 +51,7 @@ architecture Behavioral of top is
 	signal dcm_rst  : std_logic;
 	signal slow_clk : std_logic;
 	signal fast_clk : std_logic;
-	signal clk_cnt  : integer range 0 to 8 := 0;
+	signal clk_cnt  : integer := 0;
 
 	signal stCur  : mainState := stInit;
 	signal stNext : mainState;

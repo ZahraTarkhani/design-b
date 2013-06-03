@@ -141,6 +141,7 @@ begin
 						sig_small_recv     <= '0';
 						sig_send_team_code <= '0';
 						sig_code_array     <= (others => (others => '0'));
+						sig_init_rst        <= '0';
 
 						case sig_rxd_buf is
 							when sig_zero =>
