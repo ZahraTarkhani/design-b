@@ -32,8 +32,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 use work.types.all;
 
 entity top is
-	Port(CLK : in  STD_LOGIC;
-		 RST   : in  STD_LOGIC;
+	Port(CLK      : in  STD_LOGIC;
+		 RST      : in  STD_LOGIC;
 		 TXD      : out STD_LOGIC;
 		 RXD      : in  STD_LOGIC;
 		 LEDS     : out STD_LOGIC_VECTOR(7 downto 0);
@@ -44,54 +44,51 @@ end top;
 
 architecture Behavioral of top is
 	--type mainState is (stIdle, stPlayer, stPlayer2, stOurMove,  stWriteDown);
-	type mainState is (stInit, stIdle, stFindFirstMove, stWriteFirstMove, stWriteFirstMoveAck,stWriteFirstComputerAck, stWriteOpponentMove, stWriteOpponentMoveAck, stWriteSecondOpponentMove, stWriteSecondOpponentMoveAck, stFindAMove, stWriteAMove, stWriteAMoveAck, stWriteComputerAck); --
+	type mainState is (stInit, stIdle, stFindFirstMove, stWriteFirstMove, stWriteFirstMoveAck, stWriteFirstComputerAck, stWriteOpponentMove, stWriteOpponentMoveAck, stWriteSecondOpponentMove, stWriteSecondOpponentMoveAck, stFindAMove, stWriteAMove, stWriteAMoveAck, stWriteComputerAck); --
 
---	signal clk    : std_logic;
-	signal locked : std_logic;
-	signal dcm_rst    : std_logic;
+	--	signal clk    : std_logic;
+	signal locked   : std_logic;
+	signal dcm_rst  : std_logic;
 	signal slow_clk : std_logic;
 	signal fast_clk : std_logic;
-
-	signal sig_clk_fast : std_logic;
+	signal clk_cnt  : integer range 0 to 8 := 0;
 
 	signal stCur  : mainState := stInit;
 	signal stNext : mainState;
 
-	signal sig_write       : std_logic := '0';
-	signal sig_player      : std_logic := '0';
-	signal sig_write_ready : std_logic;
-	signal cmd_command     : move;
-
-	signal sig_cmd1 : move;
-	signal sig_cmd2 : move;
-
-	signal sig_our_move            : std_logic;
-	signal sig_our_move_serial     : std_logic;
+	-- signals from blokus
+	signal sig_write_ready         : std_logic;
 	signal sig_best_move           : move;
 	signal sig_move_generator_done : std_logic;
 
-	signal sig_move_in   : std_logic_vector(31 downto 0);
-	signal sig_opp_move  : std_logic_vector(31 downto 0);
-	signal sig_opp_move2 : std_logic_vector(31 downto 0);
-	signal clk_cnt       : integer range 0 to 8 := 0;
-
+	-- signals to blokus
 	signal sig_blokus_rst : std_logic := '1';
-	signal sig_send_done  : std_logic;
-	signal sig_host_state : std_logic_vector(2 downto 0);
-	signal sig_big_reset  : std_logic := '0';
+	signal sig_our_move   : std_logic;
+	signal sig_cmd1       : move;
+	signal sig_cmd2       : move;
+	signal sig_write      : std_logic := '0';
+	signal sig_player     : std_logic := '0';
+	signal cmd_command    : move;
 
-	signal sig_write_d : std_logic := '0';
+	-- signals to serial port
+	signal sig_net_move_in : std_logic_vector(31 downto 0);
+	signal sig_serial_send : std_logic;
 
-	signal sig_serial_send : std_logic := '0';
+	-- signals from serial port
+	signal sig_big_reset       : std_logic;
+	signal sig_opp_move        : std_logic_vector(31 downto 0);
+	signal sig_opp_move2       : std_logic_vector(31 downto 0);
+	signal sig_big_recv        : std_logic;
+	signal sig_small_recv      : std_logic;
+	signal sig_our_move_serial : std_logic;
+	signal sig_flip_board      : std_logic;
 
+	-- debug signals
 	signal sig_state_debug : std_logic_vector(7 downto 0) := x"00";
-	signal sig_fake_leds   : std_logic_vector(7 downto 0) := x"00";
-
-	signal sig_flip_board : std_logic;
 
 begin
 	dcm_rst <= RST or not locked;
-	
+
 	dcm : entity work.dcm_blokus
 		port map(CLKIN_IN        => CLK,
 			     RST_IN          => RST,
@@ -104,7 +101,7 @@ begin
 		port map(
 			hex_command   => sig_best_move,
 			flip_board    => sig_flip_board,
-			ascii_command => sig_move_in
+			ascii_command => sig_net_move_in
 		);
 
 	cmdAtoH : entity work.cmd_ascii_to_hex
@@ -130,36 +127,29 @@ begin
 			sig_player              => sig_player,
 			sig_write_ready         => sig_write_ready,
 			CONT                    => CONT,
-			LEDS                    => LEDS,--sig_fake_leds, --
+			LEDS                    => LEDS, --sig_fake_leds, --
 			SW                      => SW,
 			sig_our_move            => sig_our_move,
 			sig_best_move           => sig_best_move,
-			sig_state_debug 			=> sig_state_debug,
+			sig_state_debug         => sig_state_debug,
 			sig_move_generator_done => sig_move_generator_done
 		);
 
-	serial_control : entity work.DataCntrl
-		port map(TXD                => TXD,
-			     RXD                => RXD,
-			     CLK                => fast_clk,
-			     LEDS               => sig_fake_leds,--LEDS, --
-			     RST                => dcm_rst,
-			     SW                 => SW,
-			     CONT               => CONT_NET,
-
-			     --interact with move generator
-			     hex_debug          => sig_cmd1,
-			     blokus_state_debug => sig_state_debug,
-			     NET_MOVE_IN        => sig_move_in,
-			     NET_CMD_OUT        => sig_opp_move,
-			     NET_CMD_OUT_2      => sig_opp_move2,
-			     NET_BIG_RESET      => sig_big_reset,
-			     NET_SEND_DONE      => sig_send_done,
-			     NET_CUR_CMD        => sig_host_state,
-			     OUR_MOVE           => sig_our_move_serial,
-			     GEN_DONE           => sig_serial_send,
-			     flip_board         => sig_flip_board
-		);
+	DataCntrl : entity work.DataCntrl
+		port map(
+			txd           => txd,
+			rxd           => rxd,
+			clk           => slow_clk,
+			rst           => rst,
+			net_move_in   => sig_net_move_in,
+			net_big_reset => sig_big_reset,
+			net_cmd_out   => sig_opp_move,
+			net_cmd_out_2 => sig_opp_move2,
+			big_recv      => sig_big_recv,
+			small_recv    => sig_small_recv,
+			our_move      => sig_our_move_serial,
+			do_send_move  => sig_serial_send,
+			flip_board    => sig_flip_board);
 
 	process(slow_clk, dcm_rst)
 	begin
@@ -171,16 +161,16 @@ begin
 				--				sig_clk_half <= not sig_clk_half;
 				--				if sig_clk_half = '1' then
 				if clk_cnt = 8 then
-					stCur       <= stNext;
---					sig_write_d <= sig_write;
-					clk_cnt     <= 0;
+					stCur   <= stNext;
+					--					sig_write_d <= sig_write;
+					clk_cnt <= 0;
 				end if;
 			--				end if;
 			end if;
 		end if;
 	end process;
 
-	process(stCur, sig_our_move_serial, sig_send_done, sig_host_state, sig_write_ready, sig_best_move, sig_move_generator_done, sig_cmd1, sig_opp_move2, sig_cmd2)
+	process(stCur, sig_our_move_serial, sig_big_recv, sig_small_recv, sig_write_ready, sig_best_move, sig_move_generator_done, sig_cmd1, sig_opp_move2, sig_cmd2)
 	begin
 		sig_write            <= '0';
 		sig_our_move         <= '0';
@@ -221,37 +211,36 @@ begin
 
 			when stWriteFirstMove =>    -- add new signal sig_host_state
 				sig_state_debug <= x"04";
-				
---				sig_our_move    <= '1';
 
-				sig_write       <= '1';
---				sig_player  	 <= '0';
-				cmd_command 	 <= sig_best_move;
+				--				sig_our_move    <= '1';
+
+				sig_write   <= '1';
+				--				sig_player  	 <= '0';
+				cmd_command <= sig_best_move;
 
 				if sig_write_ready = '0' then
-					stNext <= stWriteFirstComputerAck;--stWriteFirstMoveAck;--
+					stNext <= stWriteFirstComputerAck; --stWriteFirstMoveAck;--
 				end if;
-				
+
 			when stWriteFirstComputerAck =>
 				sig_state_debug <= x"1c";
 				sig_serial_send <= '1';
---				sig_our_move    <= '1';
---				cmd_command <= sig_best_move;
+				--				sig_our_move    <= '1';
+				--				cmd_command <= sig_best_move;
 
 				if sig_our_move_serial = '0' then
 					stNext <= stWriteFirstMoveAck;
-				end if;	
-				
+				end if;
 
 			when stWriteFirstMoveAck =>
-				sig_state_debug <= sig_write_ready & sig_host_state & x"5";
---				sig_serial_send <= '1';
---				sig_our_move    <= '1';
+				sig_state_debug <= sig_write_ready & "000" & x"5";
+				--				sig_serial_send <= '1';
+				--				sig_our_move    <= '1';
 
 				if sig_write_ready = '1' and sig_our_move_serial = '1' then -- when 4XXXXYYYY
-					if sig_host_state = "100" then
+					if sig_big_recv = '1' then
 						stNext <= stWriteSecondOpponentMove;
-					elsif sig_host_state = "011" then --when 3XXXX
+					elsif sig_small_recv = '1' then --when 3XXXX
 						stNext <= stWriteOpponentMove;
 					--						elsif sig_host_state = "010" then --when 2A or 25
 					--							if sig_send_done = '1' then
@@ -274,7 +263,7 @@ begin
 			when stWriteSecondOpponentMoveAck =>
 				sig_state_debug <= x"07";
 				sig_player      <= '1';
---				cmd_command <= sig_cmd2;
+				--				cmd_command <= sig_cmd2;
 
 				if sig_write_ready = '1' then
 					stNext <= stWriteOpponentMove;
